@@ -1,0 +1,407 @@
+/* LivePortfolioEditor.css */
+.live-portfolio-editor {
+    display: flex;
+    padding: 15px;
+    gap: 20px;
+    flex-direction: row;
+    align-items: flex-start;
+    min-height: calc(100vh - 60px);
+}
+
+.input-area {
+    flex: 1;
+    padding-right: 15px;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+.input-area .input-section {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 15px;
+    margin-bottom: 15px;
+}
+
+.input-area .input-section label {
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.input-area .input-section input[type="text"],
+.input-area .input-section input[type="url"],
+.input-area .input-section textarea,
+.input-area .input-section select,
+.input-area .input-section input[type="color"] {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.9rem;
+}
+
+.input-area .input-section textarea {
+    min-height: 80px;
+    margin-bottom: 10px;
+}
+
+.input-area .collapsible-section {
+    margin-bottom: 15px;
+}
+
+.input-area .collapsible-section h3 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.input-area .collapsible-section h3:hover {
+    opacity: 0.8;
+}
+
+.input-area .collapsible-section .projects-section,
+.input-area .collapsible-section .customization-section {
+    border: 1px solid #f0f0f0;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.input-area h3 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
+
+.input-area .project-item {
+    border: 1px solid #eee;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.input-area .project-item h4 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.input-area .project-item label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.input-area .project-item input[type="text"],
+.input-area .project-item textarea {
+    width: 100%;
+    padding: 6px; /* Adjust padding if needed */
+    border: 1px solid #aaa; /* Change border color to something more visible */
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.input-area .project-item button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    margin-top: 3px;
+}
+
+.input-area .projects-section button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-top: 10px; /* Keep the top margin */
+    margin-left: 0; /* Reset left margin */
+}
+.input-area .projects-section button:hover {
+    background-color: #0056b3; /* A slightly darker shade of blue on hover */
+}
+
+.input-area .customization-section h3 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
+
+.input-area .customization-section label {
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+}
+
+.input-area .customization-section select,
+.input-area .customization-section input[type="color"] {
+    padding: 6px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    max-width: 150px;
+}
+
+.save-button-container {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.save-button-container button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.save-button-container button:hover {
+    background-color: #0056b3;
+}
+
+.live-preview-area {
+    flex: 1;
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    min-height: 300px;
+    font-size: 0.9rem;
+    background-color: #f9f9f9;
+}
+
+
+.live-preview-area h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.live-preview-area h3 {
+    font-size: 1.3rem;
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.live-preview-area p {
+    line-height: 1.4;
+    margin-bottom: 0.7rem;
+}
+
+.live-preview-area .portfolio-projects .portfolio-project {
+    color: #050505;
+    padding: 0.8rem;
+    margin-bottom: 0.7rem;
+}
+
+.live-preview-area .portfolio-projects .portfolio-project h4 {
+    color: #050505;
+    font-size: 1.1rem;
+    margin-bottom: 0.15rem;
+}
+
+.live-preview-area .portfolio-projects .portfolio-project p {
+    color: #050505;
+}
+
+.live-preview-area .portfolio-header a {
+    color: #007bff;
+    text-decoration: none;
+    margin-right: 1.5rem; /* Adjust spacing as needed */
+}
+
+.live-preview-area .portfolio-header a:hover {
+    text-decoration: underline;
+}
+
+/* Adjust margin-right for the last link to be zero if needed */
+.live-preview-area .portfolio-header a:last-child {
+    margin-right: 0;
+}
+
+
+.input-area .collapsible-section h3 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between; /* This is important for pushing the span to the right */
+    align-items: center; /* Vertically align the text and the icon */
+}
+
+.input-area .collapsible-section h3:hover {
+    opacity: 0.8;
+}
+
+.input-area .collapsible-section h3 span.chevron-down::before {
+    content: "\25BE"; /* Downward pointing small triangle */
+    font-size: 1.5rem;
+    margin-left: 0.3rem;
+    opacity: 0.7;
+}
+
+.input-area .collapsible-section h3 span.chevron-up::before {
+    content: "\25B4"; /* Upward pointing small triangle */
+    font-size: 1.5rem;
+    margin-left: 0.3rem;
+    opacity: 0.7;
+}
+
+
+.live-preview-area .portfolio-header {
+    display: flex; /* Keep it as a flex container for image and name */
+    align-items: center; /* Vertically align image and name */
+    flex-direction: row; /* Ensure items are in a row */
+}
+
+.live-preview-area .portfolio-header img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 1rem; /* Spacing between image and name */
+    order: 1; /* Image comes first */
+}
+
+.live-preview-area .portfolio-header .header-info {
+    display: flex;
+    flex-direction: column; /* Stack name and links vertically */
+    order: 2; /* Name and links container come second */
+}
+
+.live-preview-area .portfolio-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.live-preview-area .portfolio-header .header-info .social-links {
+    display: flex; /* Display links horizontally */
+}
+
+.live-preview-area .portfolio-header .header-info .social-links a {
+    color: #007bff;
+    text-decoration: none;
+    margin-right: 0.5rem; /* Spacing between links */
+}
+
+.live-preview-area .portfolio-header .header-info .social-links a:hover {
+    text-decoration: underline;
+}
+
+.input-area .skills-section {
+    margin-bottom: 1rem;
+}
+
+.input-area .skills-section .add-skill-input {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.input-area .skills-section .add-skill-input label {
+    flex-shrink: 0;
+}
+
+.input-area .skills-section .add-skill-input input[type="text"] {
+    flex-grow: 1;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.input-area .skills-section .add-skill-input button {
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.input-area .skills-section .add-skill-input button:hover {
+    background-color: #0056b3;
+}
+
+.input-area .skills-section .skills-list,
+.live-preview-area .portfolio-skills .skills-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.input-area .skills-section .skills-list li,
+.live-preview-area .portfolio-skills .skills-list li {
+    color: #333;
+    padding: 0.5rem 0.75rem;
+    margin-right: 0.5rem;
+}
+
+.input-area .skills-section .skills-list li button {
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.input-area .skills-section .skills-list li button:hover {
+    background-color: #c82333;
+}
+
+.live-preview-area .portfolio-skills {
+    margin-top: 1rem;
+}
+
+.live-preview-area .portfolio-skills h3 {
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.live-preview-area .portfolio-skills .skills-list {
+     list-style: none;
+     padding: 0;
+     display: flex;
+     flex-wrap: wrap;
+     gap: 0.5rem;
+ }
+
+ .live-preview-area .portfolio-skills .skills-list li {
+     background-color: #e9ecef; /* Very light gray */
+     color: #495057; /* Darker gray text */
+     padding: 0.3rem 0.6rem;
+     border-radius: 1rem; /* More rounded corners */
+     font-size: 0.9rem;
+ }
+
+
+ .live-preview-area .portfolio-about {
+     margin-top: 1rem;
+ }
+ 
+ .live-preview-area .portfolio-about h3 {
+     border-bottom: 2px solid #ccc;
+     padding-bottom: 0.5rem;
+     margin-bottom: 0.5rem;
+ }
+ 
+ .live-preview-area .portfolio-about p {
+     color: #050505; /* A darker gray for better readability */
+     line-height: 1.6; /* Improve line spacing for readability */
+ }

@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Style for projects using template 'style-1' (Minimalist) */
+.template-style-1 {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.template-style-1 h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.template-style-1 p {
+  color: #555;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.template-style-1 .links a {
+  color: #007bff;
+  text-decoration: none;
+  margin-right: 1rem;
+}
+
+.template-style-1 .links a:hover {
+  text-decoration: underline;
+}
+
+.template-style-1 .template-name {
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 0.5rem;
+}
+
+
+/* Style for projects using template 'style-2' (Creative Grid) */
+.template-style-2 {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 1fr; /* Basic single column for now, can be adjusted for a grid later */
+  gap: 1rem;
+  text-align: center;
+}
+
+.template-style-2 h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #5e35b1; /* A purple accent color */
+  margin-bottom: 0.75rem;
+}
+
+.template-style-2 p {
+  color: #444;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.template-style-2 .links {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.template-style-2 .links a {
+  background-color: #5e35b1;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.template-style-2 .links a:hover {
+  background-color: #391d7a;
+}
+
+.template-style-2 .template-name {
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+/* Default style for projects */
+.template-default {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.template-default h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.template-default p {
+  color: #666;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.template-default .links a {
+  color: #007bff;
+  text-decoration: none;
+  margin-right: 0.75rem;
+}
+
+.template-default .links a:hover {
+  text-decoration: underline;
+}
