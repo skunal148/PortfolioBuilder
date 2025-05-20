@@ -1,0 +1,56 @@
+/* CSS for ReactQuill in a Dark Theme */
+
+/* Main container for Quill (includes toolbar and editor) */
+.quill-editor-override .ql-container {
+    border-bottom-left-radius: 0.375rem; /* 6px, matches rounded-md or rounded-lg in Tailwind */
+    border-bottom-right-radius: 0.375rem;
+    border-color: #4A5568; /* slate-600 or similar, for the border around the editor */
+}
+
+.quill-editor-override .ql-toolbar {
+    background-color: #2d3748; /* Darker background for toolbar (e.g., slate-800) */
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+    border: 1px solid #4A5568 !important; /* slate-600 or similar */
+    border-bottom: none !important; /* Remove bottom border if ql-container has top border */
+}
+
+/* Style toolbar buttons and pickers */
+.quill-editor-override .ql-toolbar .ql-stroke {
+    stroke: #A0AEC0; /* Lighter color for icons (e.g., slate-400) */
+}
+.quill-editor-override .ql-toolbar .ql-fill {
+    fill: #A0AEC0; /* Lighter color for icons */
+}
+.quill-editor-override .ql-toolbar .ql-picker-label {
+    color: #A0AEC0; /* Lighter color for dropdown labels */
+}
+.quill-editor-override .ql-toolbar button:hover .ql-stroke,
+.quill-editor-override .ql-toolbar button:hover .ql-fill,
+.quill-editor-override .ql-toolbar button:focus .ql-stroke,
+.quill-editor-override .ql-toolbar button:focus .ql-fill,
+.quill-editor-override .ql-toolbar .ql-picker-label:hover {
+    stroke: #E2E8F0; /* Even lighter on hover (e.g., slate-200) */
+    fill: #E2E8F0;
+    color: #E2E8F0;
+}
+.quill-editor-override .ql-toolbar button.ql-active .ql-stroke,
+.quill-editor-override .ql-toolbar button.ql-active .ql-fill {
+    stroke: #68D391; /* Your accent color for active buttons (e.g., emerald-400) */
+    fill: #68D391;
+}
+
+/* Editor input area - THIS IS KEY FOR READABILITY */
+.quill-editor-override .ql-editor {
+    background-color: #FFFFFF; /* Make the actual typing area WHITE */
+    color: #1A202C;           /* Dark text color for typing (e.g., slate-900) */
+    min-height: 150px;        /* Or your preferred height */
+    border: 1px solid #4A5568 !important; /* slate-600 or similar */
+    border-top: none !important; /* If toolbar has bottom border or ql-container has top */
+}
+
+/* Placeholder text color in the editor */
+.quill-editor-override .ql-editor.ql-blank::before {
+    color: #718096; /* Medium gray placeholder text (e.g., slate-500) */
+    font-style: normal;
+}

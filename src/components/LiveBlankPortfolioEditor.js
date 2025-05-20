@@ -4,29 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { storage, db, auth } from './firebase'; 
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+// import ReactQuill from 'react-quill'; 
+// import 'react-quill/dist/quill.snow.css'; 
 
-/* import { 
-    ReactIcon, 
-    JavaScriptIcon, 
-    PythonIcon, 
-    HtmlIcon, 
-    CssIcon, 
-    GenericSkillIcon 
-} from './icons/SkillIcons';  */
 import PortfolioDisplay from './PortfolioDisplay'; 
 
-// Social Icons & Remove Icon
-/* const LinkedInIcon = ({ fill = "#FFFFFF" }) => ( 
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={fill} className="transition-opacity hover:opacity-75">
-    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-  </svg>
-);
-const GitHubIcon = ({ fill = "#FFFFFF" }) => ( 
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={fill} className="transition-opacity hover:opacity-75">
-    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-  </svg>
-); */
-const RemoveIcon = ({ className = "w-4 h-4" }) => ( /* ... SVG ... */ 
+const RemoveIcon = ({ className = "w-4 h-4" }) => ( 
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
   </svg>
@@ -40,7 +23,7 @@ const predefinedBackgroundThemes = [
   { id: 'sunset-glow', name: 'Sunset Glow', style: { backgroundImage: 'linear-gradient(to top right, #ff7e5f, #feb47b)' }, headingColor: '#FFFFFF', bodyTextColor: '#FFF7ED', accentColor: '#8B5CF6' },
   { id: 'deep-space', name: 'Deep Space', style: { backgroundImage: 'linear-gradient(to bottom, #232526, #414345)' }, headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#A78BFA' },
 ];
-const fontOptions = [ /* ... */ 
+const fontOptions = [ 
     { name: 'System Default', value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' },
     { name: 'Arial', value: 'Arial, Helvetica, sans-serif' },
     { name: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
@@ -52,7 +35,7 @@ const fontOptions = [ /* ... */
     { name: 'Montserrat', value: "'Montserrat', sans-serif" },
     { name: 'Source Code Pro', value: "'Source Code Pro', monospace" },
 ];
-const headerLayoutOptions = [ /* ... */ 
+const headerLayoutOptions = [ 
     { id: 'image-top-center', name: 'Image Top, Text Centered' },
     { id: 'image-left-text-right', name: 'Image Left, Text Right' },
     { id: 'text-only-center', name: 'Text Only, Centered' },
@@ -63,10 +46,22 @@ const skillDisplayOptions = [
     { id: 'text-only-list', name: 'Text Only (List)' },
 ];
 
-const createNewProject = () => ({ /* ... same ... */
+const createNewProject = () => ({ 
     id: Date.now(), title: '', description: '', 
     thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0,
     liveDemoUrl: '', sourceCodeUrl: '', videoUrl: ''
+});
+
+const createNewCustomSection = () => ({
+    id: Date.now(), 
+    sectionTitle: '', 
+    items: []         
+});
+
+const createNewCustomSectionItem = () => ({
+    id: Date.now(),
+    itemTitle: '',    
+    itemDetails: ''  
 });
 
 
@@ -84,6 +79,8 @@ function LiveBlankPortfolioEditor() {
     const [projects, setProjects] = useState([createNewProject()]); 
     const [skills, setSkills] = useState([]);
     const [newSkill, setNewSkill] = useState('');
+    const [customSections, setCustomSections] = useState([]);
+    const [customSectionsVisible, setCustomSectionsVisible] = useState(false);
 
     const initialTheme = predefinedBackgroundThemes[0];
     const [fontFamily, setFontFamily] = useState(fontOptions[0].value); 
@@ -126,8 +123,8 @@ function LiveBlankPortfolioEditor() {
                     const data = portfolioSnap.data();
                     setName(data.name || '');
                     setProfilePicture(data.profilePicture || '');
-                    setLinkedinUrl(data.linkedinUrl || ''); // Ensure these are loaded
-                    setGithubUrl(data.githubUrl || '');   // Ensure these are loaded
+                    setLinkedinUrl(data.linkedinUrl || ''); 
+                    setGithubUrl(data.githubUrl || '');   
                     setAboutMe(data.aboutMe || '');
                     setProjects(
                         Array.isArray(data.projects) && data.projects.length > 0 
@@ -149,6 +146,16 @@ function LiveBlankPortfolioEditor() {
                     
                     setSkills(Array.isArray(data.skills) ? data.skills : []);
                     
+                    setCustomSections(
+                        Array.isArray(data.customSections) 
+                        ? data.customSections.map(cs => ({
+                            ...createNewCustomSection(), 
+                            ...cs, 
+                            items: Array.isArray(cs.items) ? cs.items.map(item => ({...createNewCustomSectionItem(), ...item })) : [] 
+                          }))
+                        : []
+                    );
+
                     if (loadedBgType === 'customImage') {
                         setCustomBackgroundImageUrl(data.customBackgroundImageUrl || '');
                     } else {
@@ -169,7 +176,7 @@ function LiveBlankPortfolioEditor() {
             setAccentColor(currentInitialTheme.accentColor);
             setLoading(false);
         }
-    }, [id]); // Removed selectedBackgroundTheme from dependency array
+    }, [id]); 
 
     useEffect(() => { 
         loadPortfolioData(); 
@@ -178,11 +185,69 @@ function LiveBlankPortfolioEditor() {
     const handleAddProject = () => setProjects([...projects, createNewProject()]);
     const handleProjectChange = (index, field, value) => setProjects(projects.map((p, i) => i === index ? { ...p, [field]: value } : p));
     const handleRemoveProject = (projectId) => setProjects(projects.filter(p => p.id !== projectId));
+    
+    const handleAddCustomSection = () => {
+        setCustomSections(prevSections => [
+            ...prevSections,
+            createNewCustomSection()
+        ]);
+    };
+
+    const handleCustomSectionTitleChange = (sectionIndex, newTitle) => {
+        setCustomSections(prevSections =>
+            prevSections.map((section, i) =>
+                i === sectionIndex ? { ...section, sectionTitle: newTitle } : section
+            )
+        );
+    };
+    
+    const handleRemoveCustomSection = (idToRemove) => {
+        setCustomSections(prevSections => prevSections.filter(section => section.id !== idToRemove));
+    };
+
+    const handleAddCustomSectionItem = (sectionIndex) => {
+        setCustomSections(prevSections =>
+            prevSections.map((section, i) =>
+                i === sectionIndex
+                    ? { ...section, items: [...section.items, createNewCustomSectionItem()] }
+                    : section
+            )
+        );
+    };
+
+    const handleCustomSectionItemChange = (sectionIndex, itemIndex, field, value) => {
+        setCustomSections(prevSections =>
+            prevSections.map((section, i) =>
+                i === sectionIndex
+                    ? {
+                        ...section,
+                        items: section.items.map((item, j) =>
+                            j === itemIndex ? { ...item, [field]: value } : item
+                        )
+                      }
+                    : section
+            )
+        );
+    };
+
+    const handleRemoveCustomSectionItem = (sectionIndex, itemIdToRemove) => {
+        setCustomSections(prevSections =>
+            prevSections.map((section, i) =>
+                i === sectionIndex
+                    ? { ...section, items: section.items.filter(item => item.id !== itemIdToRemove) }
+                    : section
+            )
+        );
+    };
+
     const toggleProjects = () => setProjectsVisible(!projectsVisible);
     const toggleCustomize = () => setCustomizeVisible(!customizeVisible);
     const toggleSkills = () => setSkillsVisible(!skillsVisible); 
+    const toggleCustomSections = () => setCustomSectionsVisible(!customSectionsVisible);
+
     const arrowDown = '▼'; const arrowUp = '▲';
-    const handleProjectThumbnailChange = async (projectIndex, event) => { /* ... same as before ... */ 
+    
+    const handleProjectThumbnailChange = async (projectIndex, event) => { 
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -258,8 +323,8 @@ function LiveBlankPortfolioEditor() {
                 const snapshot = await bgUploadTask; 
                 finalCustomBgImageUrl = await getDownloadURL(snapshot.ref);
             } catch (bgUploadError) {
-                 setError("Failed to upload custom background image. Please try saving again.");
-                 setIsUploadingBackground(false); setLoading(false); return;
+                setError("Failed to upload custom background image. Please try saving again.");
+                setIsUploadingBackground(false); setLoading(false); return;
             }
         }
         await savePortfolioDataToFirestore(finalCustomBgImageUrl);
@@ -270,19 +335,32 @@ function LiveBlankPortfolioEditor() {
             id: p.id, title: p.title, description: p.description,
             thumbnailUrl: p.thumbnailUrl && !p.thumbnailUrl.startsWith('data:') ? p.thumbnailUrl : '', 
             liveDemoUrl: p.liveDemoUrl || '', 
-            sourceCodeUrl: p.sourceCodeUrl || '' 
+            sourceCodeUrl: p.sourceCodeUrl || '',
+            videoUrl: p.videoUrl || '' 
         }));
-        // Ensure all state variables are included
+        
+        const customSectionsToSave = customSections.map(cs => ({
+            id: cs.id,
+            sectionTitle: cs.sectionTitle,
+            items: cs.items.map(item => ({
+                id: item.id,
+                itemTitle: item.itemTitle,
+                itemDetails: item.itemDetails
+            }))
+        }));
+
         const portfolioData = {
             userId: auth.currentUser.uid, templateId: BLANK_TEMPLATE_ID,
             name, profilePicture, 
-            linkedinUrl, // Ensured here
-            githubUrl,   // Ensured here
+            linkedinUrl, 
+            githubUrl,   
             aboutMe, 
             projects: projectsToSave, 
             fontFamily, headingColor, bodyTextColor, accentColor, headerLayout, 
             skills, skillDisplayStyle, sectionSpacing,
+            customSections: customSectionsToSave, 
             projectsVisible, customizeVisible, skillsVisible, 
+            customSectionsVisible, 
             lastUpdated: serverTimestamp(),
             backgroundType,
             selectedBackgroundTheme: backgroundType === 'theme' ? selectedBackgroundTheme : null,
@@ -294,13 +372,13 @@ function LiveBlankPortfolioEditor() {
             if (id) { 
                 await updateDoc(doc(db, 'portfolios', id), portfolioData);
             } else { 
-                const docRef = await addDoc(collection(db, 'portfolios'), portfolioData);
+                const docRef = await addDoc(collection(db, 'portfolios'), { ...portfolioData, createdAt: serverTimestamp() });
                 newPortfolioId = docRef.id;
             }
 
             if (backgroundType === 'customImage' && customBackgroundImageFile && bgImageUrlForSave) {
-                 setCustomBackgroundImageUrl(bgImageUrlForSave);
-                 setCustomBackgroundImageFile(null);
+                setCustomBackgroundImageUrl(bgImageUrlForSave);
+                setCustomBackgroundImageFile(null);
             }
             setIsUploadingBackground(false); 
             setBackgroundUploadProgress(0);
@@ -308,7 +386,8 @@ function LiveBlankPortfolioEditor() {
             if (!id && newPortfolioId) { 
                 navigate(`/edit-blank/${newPortfolioId}`, { replace: true }); 
             } else {
-                navigate('/dashboard');
+                alert('Portfolio saved successfully!'); 
+                if(id) loadPortfolioData(); 
             }
         } catch (error) {
             setError(error.message || 'Failed to save portfolio data.');
@@ -318,7 +397,7 @@ function LiveBlankPortfolioEditor() {
         }
     };
 
-    const handleProfilePictureChange = async (event) => { /* ... same as before ... */ 
+    const handleProfilePictureChange = async (event) => { 
         const file = event.target.files?.[0];
         if (!file) return;
         if (file.size > MAX_PROFILE_PIC_SIZE) { 
@@ -349,7 +428,7 @@ function LiveBlankPortfolioEditor() {
             setIsUploadingProfilePic(false); setProfilePictureFile(null);
         }
     };
-    const handleCustomBackgroundChange = (event) => { /* ... same as before (calls uploadCustomBackground) ... */ 
+    const handleCustomBackgroundChange = (event) => { 
         const file = event.target.files?.[0];
         if (file) {
             if (file.size > MAX_BACKGROUND_IMAGE_SIZE) { 
@@ -360,35 +439,6 @@ function LiveBlankPortfolioEditor() {
             const reader = new FileReader();
             reader.onloadend = () => setCustomBackgroundImageUrl(reader.result); 
             reader.readAsDataURL(file);
-            uploadCustomBackground(file); 
-        }
-    };
-    const uploadCustomBackground = async (file) => { /* ... same as before ... */ 
-        if (!file || !auth.currentUser) return;
-        setIsUploadingBackground(true); setBackgroundUploadProgress(0); setError(null);
-        try {
-            const storagePath = `portfolioBackgrounds/${auth.currentUser.uid}/${Date.now()}_${file.name}`;
-            const storageRefFirebase = ref(storage, storagePath);
-            const uploadTask = uploadBytesResumable(storageRefFirebase, file);
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    setBackgroundUploadProgress(progress);
-                },
-                (uploadError) => {
-                    setError("Custom Background Upload failed: " + uploadError.message);
-                    setIsUploadingBackground(false); 
-                },
-                async () => {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                    setCustomBackgroundImageUrl(downloadURL); 
-                    setIsUploadingBackground(false);
-                    setCustomBackgroundImageFile(null); 
-                }
-            );
-        } catch (initUploadError) {
-            setError("Custom Background Upload failed to start.");
-            setIsUploadingBackground(false);
         }
     };
     
@@ -417,24 +467,31 @@ function LiveBlankPortfolioEditor() {
         }
     };
 
-    const handleAddSkill = () => { /* ... same as before ... */ 
+    const handleAddSkill = () => { 
         if (newSkill.trim() && !skills.includes(newSkill.trim())) {
             setSkills([...skills, newSkill.trim()]); 
             setNewSkill('');
         }
     };
     const handleRemoveSkill = (skillToRemove) => setSkills(skills.filter(skill => skill !== skillToRemove));
-    const handleViewLivePortfolio = () => { /* ... same as before ... */ 
+    const handleViewLivePortfolio = () => { 
         if (id) { 
-            navigate(`/portfolio/${id}`);
+            const unsavedChanges = profilePictureFile || customBackgroundImageFile || projects.some(p => p.thumbnailFile); 
+            if (unsavedChanges) {
+                if (window.confirm("You have unsaved changes that will not be reflected in the live view until you save. View anyway?")) {
+                    window.open(`/portfolio/${id}`, '_blank');
+                }
+            } else {
+                 window.open(`/portfolio/${id}`, '_blank');
+            }
         } else {
             setError("Please save the portfolio first to view it live.");
         }
     };
 
-    // ... (Loading and Error return JSX remains the same) ...
-    if (loading) return <div className="flex justify-center items-center min-h-screen text-xl text-slate-300">Loading Editor...</div>;
-    if (error) return ( 
+    if (loading && !id) return <div className="flex justify-center items-center min-h-screen text-xl text-slate-300">Initializing New Portfolio...</div>;
+    if (loading && id) return <div className="flex justify-center items-center min-h-screen text-xl text-slate-300">Loading Portfolio Data...</div>;
+    if (error && !loading) return ( 
         <div className="flex flex-col justify-center items-center min-h-screen text-red-400 p-4">
             <h2 className="text-2xl mb-4">Something went wrong</h2>
             <p className="mb-4">{error}</p>
@@ -455,8 +512,8 @@ function LiveBlankPortfolioEditor() {
     let saveButtonText = id ? 'Update Blank Portfolio' : 'Save Blank Portfolio';
     if (isUploadingBackground) saveButtonText = `Uploading BG (${backgroundUploadProgress.toFixed(0)}%)...`;
     else if (isUploadingProfilePic) saveButtonText = 'Uploading Pic...';
-    else if (projects.some(p => p.isUploadingThumbnail)) saveButtonText = 'Uploading Project Thumbnails...';
-    else if (loading) saveButtonText = 'Saving...'; 
+    else if (projects.some(p => p.isUploadingThumbnail)) saveButtonText = 'Uploading Thumbs...';
+    else if (loading) saveButtonText = 'Processing...'; 
 
     const portfolioDataForPreview = {
         name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills,
@@ -464,29 +521,20 @@ function LiveBlankPortfolioEditor() {
         templateId: BLANK_TEMPLATE_ID, 
         backgroundType, selectedBackgroundTheme, customBackgroundImageUrl,
         headerLayout, skillDisplayStyle, sectionSpacing,
+        customSections, 
     };
 
     return (
-        <div className="live-portfolio-editor-container container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="input-area bg-slate-800 p-6 rounded-xl shadow-2xl space-y-8 max-h-[calc(100vh-120px)] overflow-y-auto">
-                {/* ... (Title and View Live button) ... */}
+        <div className="live-portfolio-editor-container container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-editor gap-8 items-start" style={{gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)'}}>
+            <div className="input-area bg-slate-800 p-6 rounded-xl shadow-2xl space-y-8 max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar">
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
                     <h2 className="text-3xl font-bold text-slate-100 mb-4 sm:mb-0">
                         {id ? 'Edit Your Portfolio (Blank)' : 'Create Blank Portfolio'}
                     </h2>
-                    {id && (
-                        <button
-                            onClick={handleViewLivePortfolio}
-                            className={`${secondaryButtonClasses} py-2 px-5 text-sm whitespace-nowrap`}
-                        >
-                            View Live Portfolio
-                        </button>
-                    )}
+                    {id && ( <button onClick={handleViewLivePortfolio} className={`${secondaryButtonClasses} py-2 px-5 text-sm whitespace-nowrap`}> View Live Portfolio </button> )}
                 </div>
-                
-                 {/* ... (Basic Info, Skills, Projects sections) ... */}
-                 <div className="input-section bg-slate-850 p-4 rounded-lg grid grid-cols-1 gap-y-6">
-                     <h3 className="text-xl font-semibold text-emerald-400">Basic Information</h3>
+                <div className="input-section bg-slate-850 p-4 rounded-lg grid grid-cols-1 gap-y-6">
+                    <h3 className="text-xl font-semibold text-emerald-400">Basic Information</h3>
                     <div>
                         <label htmlFor="name" className={labelClasses}>Full Name</label>
                         <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className={inputClasses} placeholder="Your Full Name" />
@@ -497,6 +545,9 @@ function LiveBlankPortfolioEditor() {
                         {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading Profile Pic...</p>}
                         {profilePicture && !profilePicture.startsWith('data:') && !isUploadingProfilePic && (
                             <p className="text-xs text-emerald-400 mt-1">Profile picture uploaded.</p>
+                        )}
+                         {profilePicture && profilePicture.startsWith('data:') && !isUploadingProfilePic && (
+                            <img src={profilePicture} alt="Profile preview" className="mt-2 rounded-full max-h-20 object-contain"/>
                         )}
                     </div>
                     <div> 
@@ -517,7 +568,7 @@ function LiveBlankPortfolioEditor() {
                         <span>Skills</span>
                         <span>{skillsVisible ? arrowUp : arrowDown}</span>
                     </h3>
-                    {skillsVisible && ( /* ... skills input content ... */ 
+                    {skillsVisible && ( 
                         <div className="skills-section mt-3 space-y-3">
                             <div className="add-skill-input flex items-end space-x-2">
                                 <div className="flex-grow">
@@ -546,8 +597,6 @@ function LiveBlankPortfolioEditor() {
                         </div>
                     )}
                 </div>
-
-                {/* MODIFIED: Projects Section with Thumbnail and URL Inputs */}
                 <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
                     <h3 onClick={toggleProjects} className={sectionHeaderClasses}>
                         <span>Projects</span>
@@ -582,7 +631,6 @@ function LiveBlankPortfolioEditor() {
                                             <img src={project.thumbnailUrl} alt="Project thumbnail preview" className="mt-2 rounded max-h-28 object-contain"/>
                                         )}
                                     </div>
-                                    {/* ADDED: Live Demo URL input */}
                                     <div>
                                         <label htmlFor={`project-liveDemoUrl-${project.id}`} className={labelClasses}>Live Demo URL (Optional)</label>
                                         <input 
@@ -594,7 +642,6 @@ function LiveBlankPortfolioEditor() {
                                             placeholder="https://your-live-project-demo.com"
                                         />
                                     </div>
-                                    {/* ADDED: Source Code URL input */}
                                     <div>
                                         <label htmlFor={`project-sourceCodeUrl-${project.id}`} className={labelClasses}>Source Code URL (Optional)</label>
                                         <input 
@@ -606,6 +653,10 @@ function LiveBlankPortfolioEditor() {
                                             placeholder="https://github.com/yourusername/your-project"
                                         />
                                     </div>
+                                     <div>
+                                        <label htmlFor={`project-videoUrl-${project.id}`} className={labelClasses}>Video URL (YouTube/Vimeo - Optional)</label>
+                                        <input type="url" id={`project-videoUrl-${project.id}`} value={project.videoUrl || ''} onChange={(e) => handleProjectChange(index, 'videoUrl', e.target.value)} className={inputClasses} placeholder="https://youtube.com/watch?v=..."/>
+                                    </div>
                                 </div>
                             ))}
                             <button type="button" onClick={handleAddProject} className={`${buttonClasses} w-full py-3 text-base`}>Add Another Project</button>
@@ -613,7 +664,84 @@ function LiveBlankPortfolioEditor() {
                     )}
                 </div>
 
-                {/* Customize Styles & Layout Section */}
+                <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
+                    <h3 onClick={toggleCustomSections} className={sectionHeaderClasses}>
+                        <span>Custom Sections</span>
+                        <span>{customSectionsVisible ? arrowUp : arrowDown}</span>
+                    </h3>
+                    {customSectionsVisible && (
+                        <div className="custom-sections-list mt-3 space-y-6">
+                            {customSections.map((section, sectionIndex) => (
+                                <div key={section.id} className="custom-section-item bg-slate-750 p-4 rounded-lg border border-slate-700 space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        {/* --- MODIFIED: Custom Section Title Input Styling --- */}
+                                        <input
+                                            type="text"
+                                            value={section.sectionTitle}
+                                            onChange={(e) => handleCustomSectionTitleChange(sectionIndex, e.target.value)}
+                                            placeholder="Custom Section Title (e.g., Experience)"
+                                            className={`${inputClasses} text-xl font-semibold`} // Using standard inputClasses for boxed look, kept text-xl
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveCustomSection(section.id)}
+                                            className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors"
+                                            aria-label="Remove this custom section block"
+                                        >
+                                            <RemoveIcon className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4 pl-4 border-l-2 border-slate-600">
+                                        {section.items && section.items.map((item, itemIndex) => (
+                                            <div key={item.id} className="custom-section-entry bg-slate-700 p-3 rounded-md space-y-3">
+                                                <div className="flex justify-between items-center">
+                                                    <input
+                                                        type="text"
+                                                        value={item.itemTitle}
+                                                        onChange={(e) => handleCustomSectionItemChange(sectionIndex, itemIndex, 'itemTitle', e.target.value)}
+                                                        placeholder="Entry Title (e.g., Company Name, Degree)"
+                                                        className={`${inputClasses} font-medium !py-2`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveCustomSectionItem(sectionIndex, item.id)}
+                                                        className={`text-rose-500 hover:text-rose-400 ${smallButtonClasses} !bg-transparent p-1.5 rounded-full hover:bg-slate-600`}
+                                                        aria-label="Remove entry"
+                                                    >
+                                                        <RemoveIcon className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                                <textarea
+                                                    value={item.itemDetails}
+                                                    onChange={(e) => handleCustomSectionItemChange(sectionIndex, itemIndex, 'itemDetails', e.target.value)}
+                                                    placeholder="Details for this entry..."
+                                                    className={`${inputClasses} min-h-[80px]`}
+                                                />
+                                            </div>
+                                        ))}
+                                        {/* --- MODIFIED: "+ Add Entry" Button Styling --- */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleAddCustomSectionItem(sectionIndex)}
+                                            className="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-full text-sm shadow-md transition-colors mt-2" // Pill shape, adjusted padding
+                                        >
+                                            + Add Entry to this Section
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={handleAddCustomSection}
+                                className={`${buttonClasses} w-full py-3 text-base mt-4`}
+                            >
+                                Add New Custom Section Block
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
                     <h3 onClick={toggleCustomize} className={sectionHeaderClasses}>
                         <span>Customize Styles & Layout</span>
@@ -621,8 +749,7 @@ function LiveBlankPortfolioEditor() {
                     </h3>
                     {customizeVisible && ( 
                         <div className="customization-section mt-3 space-y-6">
-                           {/* ... Font Family, Colors, Header Layout, Skill Display Style, Section Spacing ... */}
-                           <div>
+                            <div>
                                 <label htmlFor="fontFamily" className={labelClasses}>Font Family</label>
                                 <select id="fontFamily" value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className={inputClasses}>
                                     {fontOptions.map(font => (
@@ -722,14 +849,14 @@ function LiveBlankPortfolioEditor() {
 
                 <div className="save-button-container mt-8">
                     <button onClick={handleSavePortfolio} disabled={loading || isUploadingProfilePic || isUploadingBackground || projects.some(p => p.isUploadingThumbnail)} className={`${buttonClasses} w-full text-lg py-3 disabled:opacity-70 disabled:cursor-not-allowed`}>
-                         {saveButtonText}
+                        {saveButtonText}
                     </button>
                 </div>
+                {error && <p className="text-red-400 text-sm mt-4 text-center">{error}</p>}
             </div>
 
-            {/* Live Preview Area - Uses PortfolioDisplay component */}
-            <div className="sticky top-20 max-h-[calc(100vh-120px)] overflow-y-auto"> 
-                <PortfolioDisplay portfolioData={portfolioDataForPreview} />
+            <div className="preview-area sticky top-[calc(theme(spacing.4)+env(safe-area-inset-top))] max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar bg-slate-900 rounded-xl shadow-2xl"> 
+                 <PortfolioDisplay portfolioData={portfolioDataForPreview} />
             </div>
         </div>
     );
