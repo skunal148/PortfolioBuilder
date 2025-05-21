@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { storage, db, auth } from './firebase'; 
+import { storage, db, auth } from './firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, addDoc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
-import PortfolioDisplay from './PortfolioDisplay'; 
+import PortfolioDisplay from './PortfolioDisplay';
 
 // --- Icons ---
-const RemoveIcon = ({ className = "w-4 h-4" }) => ( 
+const RemoveIcon = ({ className = "w-4 h-4" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
   </svg>
@@ -35,7 +35,7 @@ const TrashIcon = ({ className = "w-5 h-5" }) => (
 );
 
 // --- Definitions (Fonts, Layouts, Skills) ---
-const fontOptions = [ 
+const fontOptions = [
     { name: 'System Default', value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' },
     { name: 'Arial', value: 'Arial, Helvetica, sans-serif' },
     { name: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
@@ -47,39 +47,39 @@ const fontOptions = [
     { name: 'Montserrat', value: "'Montserrat', sans-serif" },
     { name: 'Source Code Pro', value: "'Source Code Pro', monospace" },
 ];
-const headerLayoutOptions = [ 
+const headerLayoutOptions = [
     { id: 'image-top-center', name: 'Image Top, Text Centered' },
     { id: 'image-left-text-right', name: 'Image Left, Text Right' },
     { id: 'text-only-center', name: 'Text Only, Centered' },
 ];
-const skillDisplayOptions = [ 
-    { id: 'icon-text-chip', name: 'Icon & Text (Chip)' }, 
+const skillDisplayOptions = [
+    { id: 'icon-text-chip', name: 'Icon & Text (Chip)' },
     { id: 'icon-only-chip', name: 'Icon Only (Chip)' },
     { id: 'text-only-list', name: 'Text Only (List)' },
 ];
 
 // Default colors for styled templates (can be overridden by loaded data or template-specific logic)
-const defaultStyledHeadingColor = '#1F2937'; 
+const defaultStyledHeadingColor = '#1F2937';
 const defaultStyledBodyTextColor = '#374151';
-const defaultStyledAccentColor = '#059669'; 
+const defaultStyledAccentColor = '#059669';
 const defaultStyledSecondaryAccentColor = '#6366F1'; // Example: Indigo
 
 // --- NEW: Predefined Color Palettes ---
 const predefinedColorPalettes = [
-    { 
-        name: 'Emerald & Indigo (Default)', 
-        headingColor: '#1F2937', bodyTextColor: '#374151', 
-        accentColor: '#059669', secondaryAccentColor: '#6366F1' 
+    {
+        name: 'Emerald & Indigo (Default)',
+        headingColor: '#1F2937', bodyTextColor: '#374151',
+        accentColor: '#059669', secondaryAccentColor: '#6366F1'
     },
-    { 
-        name: 'Sky & Rose', 
-        headingColor: '#0c4a6e', bodyTextColor: '#1e3a8a', 
-        accentColor: '#0284c7', secondaryAccentColor: '#e11d48' 
+    {
+        name: 'Sky & Rose',
+        headingColor: '#0c4a6e', bodyTextColor: '#1e3a8a',
+        accentColor: '#0284c7', secondaryAccentColor: '#e11d48'
     },
-    { 
-        name: 'Amber & Teal', 
-        headingColor: '#451a03', bodyTextColor: '#713f12', 
-        accentColor: '#f59e0b', secondaryAccentColor: '#14b8a6' 
+    {
+        name: 'Amber & Teal',
+        headingColor: '#451a03', bodyTextColor: '#713f12',
+        accentColor: '#f59e0b', secondaryAccentColor: '#14b8a6'
     },
     {
         name: 'Slate & Fuchsia',
@@ -97,58 +97,61 @@ const predefinedColorPalettes = [
 // --- Helper Functions for Creating New Items ---
 const generateStableId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-const createNewProject = () => ({ 
-    id: generateStableId('project'), 
-    title: '', description: '', 
+const createNewProject = () => ({
+    id: generateStableId('project'),
+    title: '', description: '',
     thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0,
     liveDemoUrl: '', sourceCodeUrl: '', videoUrl: '',
-    isCollapsed: false 
+    isCollapsed: false
 });
 
 const createNewCustomSection = () => ({
-    id: generateStableId('customSection'), 
-    sectionTitle: '', 
-    items: []         
+    id: generateStableId('customSection'),
+    sectionTitle: '',
+    items: []
 });
 
 const createNewCustomSectionItem = () => ({
     id: generateStableId('customItem'),
-    itemTitle: '',    
+    itemTitle: '',
     itemDetails: '',
-    isCollapsed: false 
+    isCollapsed: false
 });
 
 
 function LivePortfolioEditor() {
     const { templateId: templateIdFromUrl, portfolioId } = useParams();
-    const id = portfolioId; 
+    const id = portfolioId;
     const navigate = useNavigate();
 
     // Content States
     const [name, setName] = useState('');
     const [profilePicture, setProfilePicture] = useState('');
-    const [profilePictureFile, setProfilePictureFile] = useState(null); 
+    const [profilePictureFile, setProfilePictureFile] = useState(null);
     const [linkedinUrl, setLinkedinUrl] = useState('');
     const [githubUrl, setGithubUrl] = useState('');
     const [aboutMe, setAboutMe] = useState('');
     const [projects, setProjects] = useState([createNewProject()]);
+    // MODIFIED: Skills state to handle objects
     const [skills, setSkills] = useState([]);
-    const [newSkill, setNewSkill] = useState('');
+    const [newSkillName, setNewSkillName] = useState('');
+    const [newSkillLevel, setNewSkillLevel] = useState('Beginner'); // Default proficiency
+    // END MODIFIED
     const [customSections, setCustomSections] = useState([]);
 
     // Styling & Layout States
-    const [fontFamily, setFontFamily] = useState(fontOptions[0].value); 
+    const [fontFamily, setFontFamily] = useState(fontOptions[0].value);
     const [headingColor, setHeadingColor] = useState(defaultStyledHeadingColor);
     const [bodyTextColor, setBodyTextColor] = useState(defaultStyledBodyTextColor);
     const [accentColor, setAccentColor] = useState(defaultStyledAccentColor);
     // --- NEW: State for Secondary Accent Color ---
     const [secondaryAccentColor, setSecondaryAccentColor] = useState(defaultStyledSecondaryAccentColor);
 
-    const [headerLayout, setHeaderLayout] = useState(headerLayoutOptions[0].id); 
+    const [headerLayout, setHeaderLayout] = useState(headerLayoutOptions[0].id);
     const [skillDisplayStyle, setSkillDisplayStyle] = useState(skillDisplayOptions[0].id);
-    const [sectionSpacing, setSectionSpacing] = useState(4); 
+    const [sectionSpacing, setSectionSpacing] = useState(4);
     const [skillChipStyleOverride, setSkillChipStyleOverride] = useState('theme');
-    
+
     // Editor UI Visibility States
     const [projectsVisible, setProjectsVisible] = useState(true);
     const [skillsVisible, setSkillsVisible] = useState(true);
@@ -160,17 +163,17 @@ function LivePortfolioEditor() {
     const [isUploadingProfilePic, setIsUploadingProfilePic] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
+
     const [isMobileView, setIsMobileView] = useState(window.innerWidth < 1024);
-    
-    const MAX_FILE_SIZE = 2 * 1024 * 1024; 
+
+    const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
     useEffect(() => {
         const handleResize = () => {
-            setIsMobileView(window.innerWidth < 1024); 
+            setIsMobileView(window.innerWidth < 1024);
         };
         window.addEventListener('resize', handleResize);
-        handleResize(); 
+        handleResize();
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
@@ -178,7 +181,7 @@ function LivePortfolioEditor() {
     const loadPortfolioData = useCallback(async () => {
         setLoading(true);
         setError('');
-        if (id) { 
+        if (id) {
             try {
                 const portfolioRef = doc(db, 'portfolios', id);
                 const docSnap = await getDoc(portfolioRef);
@@ -191,30 +194,32 @@ function LivePortfolioEditor() {
                     setAboutMe(data.aboutMe || '');
                     setProjects(
                         Array.isArray(data.projects) && data.projects.length > 0
-                        ? data.projects.map(p => ({ 
-                            ...createNewProject(), 
-                            ...p, 
+                        ? data.projects.map(p => ({
+                            ...createNewProject(),
+                            ...p,
                             id: p.id ? String(p.id) : generateStableId('project'),
                             isCollapsed: p.isCollapsed !== undefined ? p.isCollapsed : false,
-                            thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0 
+                            thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0
                         }))
                         : [createNewProject()]
                     );
+                    // MODIFIED: Load skills as array of objects
                     setSkills(Array.isArray(data.skills) ? data.skills : []);
+                    // END MODIFIED
                     setCustomSections(
-                        Array.isArray(data.customSections) 
+                        Array.isArray(data.customSections)
                         ? data.customSections.map(cs => ({
-                            ...createNewCustomSection(), 
-                            ...cs, 
+                            ...createNewCustomSection(),
+                            ...cs,
                             id: cs.id ? String(cs.id) : generateStableId('customSection'),
-                            items: Array.isArray(cs.items) 
+                            items: Array.isArray(cs.items)
                                    ? cs.items.map(item => ({
-                                       ...createNewCustomSectionItem(), 
-                                       ...item, 
+                                       ...createNewCustomSectionItem(),
+                                       ...item,
                                        id: item.id ? String(item.id) : generateStableId('customItem'),
                                        isCollapsed: item.isCollapsed !== undefined ? item.isCollapsed : false
-                                    })) 
-                                   : [] 
+                                    }))
+                                   : []
                           }))
                         : []
                     );
@@ -230,19 +235,19 @@ function LivePortfolioEditor() {
                     setSkillDisplayStyle(data.skillDisplayStyle || skillDisplayOptions[0].id);
                     setSectionSpacing(data.sectionSpacing !== undefined ? data.sectionSpacing : 4);
                     setSkillChipStyleOverride(data.skillChipStyleOverride || 'theme');
-                    
+
                     setProjectsVisible(data.projectsVisible !== undefined ? data.projectsVisible : true);
                     setSkillsVisible(data.skillsVisible !== undefined ? data.skillsVisible : true);
                     setCustomSectionsVisible(data.customSectionsVisible !== undefined ? data.customSectionsVisible : false);
                     setCustomizeStylesLayoutVisible(data.customizeStylesLayoutVisible !== undefined ? data.customizeStylesLayoutVisible : true);
 
-                    setActiveTemplateIdForPreview(data.templateId || templateIdFromUrl); 
+                    setActiveTemplateIdForPreview(data.templateId || templateIdFromUrl);
                 } else {
                     setError('Portfolio not found. Creating a new one with this style.');
-                    setActiveTemplateIdForPreview(templateIdFromUrl); 
-                    setProjects([createNewProject()]); 
+                    setActiveTemplateIdForPreview(templateIdFromUrl);
+                    setProjects([createNewProject()]);
                     setSecondaryAccentColor(defaultStyledSecondaryAccentColor);
-                    setSkillChipStyleOverride('theme'); 
+                    setSkillChipStyleOverride('theme');
                 }
             } catch (err) {
                 console.error("Error loading portfolio data:", err);
@@ -250,7 +255,7 @@ function LivePortfolioEditor() {
             } finally {
                 setLoading(false);
             }
-        } else if (templateIdFromUrl) { 
+        } else if (templateIdFromUrl) {
             setActiveTemplateIdForPreview(templateIdFromUrl);
             setFontFamily(fontOptions[0].value);
             setHeadingColor(defaultStyledHeadingColor);
@@ -258,13 +263,13 @@ function LivePortfolioEditor() {
             setAccentColor(defaultStyledAccentColor);
             setSecondaryAccentColor(defaultStyledSecondaryAccentColor);
             setProjects([createNewProject()]);
-            setSkillChipStyleOverride('theme'); 
+            setSkillChipStyleOverride('theme');
             setLoading(false);
         } else {
-            setError("Cannot load editor: Missing portfolio or template information."); 
+            setError("Cannot load editor: Missing portfolio or template information.");
             setLoading(false);
         }
-    }, [id, templateIdFromUrl]); 
+    }, [id, templateIdFromUrl]);
 
     useEffect(() => { loadPortfolioData(); }, [loadPortfolioData]);
 
@@ -274,13 +279,24 @@ function LivePortfolioEditor() {
     const handleRemoveProject = (projectId) => setProjects(prev => prev.filter(p => p.id !== projectId));
     const handleToggleProjectItemCollapse = (projectId) => setProjects(prev => prev.map(p => p.id === projectId ? { ...p, isCollapsed: !p.isCollapsed } : p));
 
+    // MODIFIED: handleAddSkill and handleRemoveSkill
     const handleAddSkill = () => {
-        if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-            setSkills(prev => [...prev, newSkill.trim()]);
-            setNewSkill('');
+        if (newSkillName.trim()) {
+            const skillExists = skills.some(skill => skill.name.toLowerCase() === newSkillName.trim().toLowerCase());
+            if (!skillExists) {
+                setSkills(prevSkills => [...prevSkills, { name: newSkillName.trim(), level: newSkillLevel }]);
+                setNewSkillName('');
+                setNewSkillLevel('Beginner');
+            } else {
+                alert("This skill has already been added.");
+            }
         }
     };
-    const handleRemoveSkill = (skillToRemove) => setSkills(prev => prev.filter(skill => skill !== skillToRemove));
+
+    const handleRemoveSkill = (skillNameToRemove) => {
+        setSkills(prevSkills => prevSkills.filter(skill => skill.name !== skillNameToRemove));
+    };
+    // END MODIFIED
 
     const handleAddCustomSection = () => setCustomSections(prev => [...prev, createNewCustomSection()]);
     const handleCustomSectionTitleChange = (sectionIndex, title) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, sectionTitle: title } : s));
@@ -289,7 +305,7 @@ function LivePortfolioEditor() {
     const handleCustomSectionItemChange = (sectionIndex, itemIndex, field, value) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.map((item, j) => j === itemIndex ? { ...item, [field]: value } : item) } : s));
     const handleRemoveCustomSectionItem = (sectionIndex, itemId) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.filter(item => item.id !== itemId) } : s));
     const handleToggleCustomSectionItemCollapse = (sectionIndex, itemId) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.map(item => item.id === itemId ? { ...item, isCollapsed: !item.isCollapsed } : item) } : s));
-    
+
     // --- UI Toggle Handlers ---
     const toggleProjects = () => setProjectsVisible(!projectsVisible);
     const toggleSkills = () => setSkillsVisible(!skillsVisible);
@@ -299,13 +315,13 @@ function LivePortfolioEditor() {
 
     // --- File Upload Handlers ---
     const handleImageUpload = async (file, pathPrefix, onProgress, currentImageUrl = '') => {
-        if (!file) return currentImageUrl; 
+        if (!file) return currentImageUrl;
         if (!auth.currentUser) {
             setError("Authentication error. Cannot upload image.");
             return currentImageUrl;
         }
         const fileName = `${pathPrefix}/${auth.currentUser.uid}/${Date.now()}_${file.name}`;
-        const storageRefFirebase = ref(storage, fileName); 
+        const storageRefFirebase = ref(storage, fileName);
         const uploadTask = uploadBytesResumable(storageRefFirebase, file);
         return new Promise((resolve, reject) => {
             uploadTask.on('state_changed',
@@ -339,8 +355,8 @@ function LivePortfolioEditor() {
             alert(`Profile picture is too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
             return;
         }
-        setProfilePictureFile(file); 
-        const reader = new FileReader(); 
+        setProfilePictureFile(file);
+        const reader = new FileReader();
         reader.onloadend = () => setProfilePicture(reader.result);
         reader.readAsDataURL(file);
     };
@@ -358,8 +374,8 @@ function LivePortfolioEditor() {
             return;
         }
         const updatedProjects = [...projects];
-        updatedProjects[projectIndex].thumbnailFile = file; 
-        const reader = new FileReader(); 
+        updatedProjects[projectIndex].thumbnailFile = file;
+        const reader = new FileReader();
         reader.onloadend = () => {
             updatedProjects[projectIndex].thumbnailUrl = reader.result;
             setProjects(updatedProjects);
@@ -368,10 +384,10 @@ function LivePortfolioEditor() {
     };
 
     const handleRemoveProjectThumbnail = (projectIndex) => {
-        setProjects(prevProjects => 
-            prevProjects.map((p, idx) => 
-                idx === projectIndex 
-                ? { ...p, thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0 } 
+        setProjects(prevProjects =>
+            prevProjects.map((p, idx) =>
+                idx === projectIndex
+                ? { ...p, thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0 }
                 : p
             )
         );
@@ -399,15 +415,15 @@ function LivePortfolioEditor() {
         if (!auth.currentUser) { setError("You must be logged in to save your portfolio."); return; }
         setLoading(true); setError('');
         let finalProfilePictureUrl = profilePicture;
-        let finalProjects = [...projects]; 
+        let finalProjects = [...projects];
 
         try {
             if (profilePictureFile) {
                 setIsUploadingProfilePic(true);
                 finalProfilePictureUrl = await handleImageUpload(profilePictureFile, 'profilePictures_styled', (progress) => {/* Progress */});
-                setProfilePictureFile(null); 
+                setProfilePictureFile(null);
                 setIsUploadingProfilePic(false);
-            } else if (!profilePicture) { 
+            } else if (!profilePicture) {
                 finalProfilePictureUrl = '';
             }
 
@@ -416,23 +432,23 @@ function LivePortfolioEditor() {
                 if (finalProjects[i].thumbnailFile) {
                     finalProjects[i].isUploadingThumbnail = true;
                     const thumbnailUrl = await handleImageUpload(
-                        finalProjects[i].thumbnailFile, 
-                        `projectThumbnails_styled/${finalProjects[i].id}`, 
+                        finalProjects[i].thumbnailFile,
+                        `projectThumbnails_styled/${finalProjects[i].id}`,
                         (progress) => {
-                            const progressProjects = [...projects]; 
+                            const progressProjects = [...projects];
                             if(progressProjects[i]) progressProjects[i].thumbnailUploadProgress = progress;
-                            setProjects(progressProjects); 
+                            setProjects(progressProjects);
                         },
                         finalProjects[i].thumbnailUrl
                     );
                     finalProjects[i].thumbnailUrl = thumbnailUrl;
-                    finalProjects[i].thumbnailFile = null; 
+                    finalProjects[i].thumbnailFile = null;
                     finalProjects[i].isUploadingThumbnail = false;
-                } else if (!finalProjects[i].thumbnailUrl) { 
-                     finalProjects[i].thumbnailUrl = ''; 
+                } else if (!finalProjects[i].thumbnailUrl) {
+                     finalProjects[i].thumbnailUrl = '';
                 }
             }
-            setProjects(finalProjects.map(p => ({...p, isUploadingThumbnail: false, thumbnailUploadProgress: 0}))); 
+            setProjects(finalProjects.map(p => ({...p, isUploadingThumbnail: false, thumbnailUploadProgress: 0})));
 
             const projectsToSave = finalProjects.map(p => ({
                 id: String(p.id), title: p.title, description: p.description,
@@ -451,10 +467,10 @@ function LivePortfolioEditor() {
 
             const portfolioData = {
                 userId: auth.currentUser.uid,
-                templateId: activeTemplateIdForPreview, 
+                templateId: activeTemplateIdForPreview,
                 name, profilePicture: finalProfilePictureUrl,
                 linkedinUrl, githubUrl, aboutMe,
-                projects: projectsToSave, skills, customSections: customSectionsToSave,
+                projects: projectsToSave, skills, customSections: customSectionsToSave, // skills is now array of objects
                 fontFamily, headingColor, bodyTextColor, accentColor,
                 // --- NEW: Save secondaryAccentColor ---
                 secondaryAccentColor: secondaryAccentColor,
@@ -464,17 +480,17 @@ function LivePortfolioEditor() {
                 lastUpdated: serverTimestamp(),
             };
 
-            if (id) { 
+            if (id) {
                 const portfolioRef = doc(db, 'portfolios', id);
                 await updateDoc(portfolioRef, portfolioData);
-            } else { 
+            } else {
                 const docRef = await addDoc(collection(db, 'portfolios'), {
                     ...portfolioData, createdAt: serverTimestamp(),
                 });
                 navigate(`/editor/${activeTemplateIdForPreview}/${docRef.id}`, { replace: true });
             }
             alert('Portfolio saved successfully!');
-            if (id) loadPortfolioData(); 
+            if (id) loadPortfolioData();
 
         } catch (err) {
             console.error('Error saving portfolio:', err);
@@ -484,7 +500,7 @@ function LivePortfolioEditor() {
             setIsUploadingProfilePic(false);
         }
     };
-    
+
     // --- onDragEnd Handler ---
     const onDragEnd = (result) => {
         const { source, destination, type } = result;
@@ -512,7 +528,7 @@ function LivePortfolioEditor() {
     // --- Loading and Error JSX ---
     if (loading && !id && !templateIdFromUrl) return <div className="flex justify-center items-center min-h-screen text-xl text-slate-300">Loading Editor...</div>;
     if (loading && (id || templateIdFromUrl)) return <div className="flex justify-center items-center min-h-screen text-xl text-slate-300">Loading Portfolio Data...</div>;
-    if (error && !loading) return ( 
+    if (error && !loading) return (
         <div className="flex flex-col justify-center items-center min-h-screen text-red-400 p-4">
             <h2 className="text-2xl mb-4">Something went wrong</h2>
             <p className="mb-4">{error}</p>
@@ -530,7 +546,7 @@ function LivePortfolioEditor() {
     const buttonClasses = "bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-md transition-colors";
     const secondaryButtonClasses = "bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-md transition-colors";
     const smallButtonClasses = "text-xs py-1 px-2 rounded-md";
-    
+
     let saveButtonText = id ? `Update Portfolio (${activeTemplateIdForPreview})` : `Create Portfolio (${activeTemplateIdForPreview})`;
     if (loading) saveButtonText = 'Processing...';
     else if (isUploadingProfilePic) saveButtonText = 'Uploading Profile Pic...';
@@ -540,35 +556,35 @@ function LivePortfolioEditor() {
     let finalSkillChipTextForPreview;
 
     if (skillChipStyleOverride === 'light') {
-        finalSkillChipBgForPreview = '#E2E8F0'; 
-        finalSkillChipTextForPreview = '#2D3748'; 
+        finalSkillChipBgForPreview = '#E2E8F0';
+        finalSkillChipTextForPreview = '#2D3748';
     } else if (skillChipStyleOverride === 'dark') {
-        finalSkillChipBgForPreview = '#2D3748'; 
-        finalSkillChipTextForPreview = '#E2E8F0'; 
-    } else { 
+        finalSkillChipBgForPreview = '#2D3748';
+        finalSkillChipTextForPreview = '#E2E8F0';
+    } else {
         const isDarkPortfolioText = headingColor.toLowerCase().startsWith('#e') || headingColor.toLowerCase().startsWith('#f') || bodyTextColor.toLowerCase().startsWith('#e') || bodyTextColor.toLowerCase().startsWith('#f');
-        if (isDarkPortfolioText) { 
-            finalSkillChipBgForPreview = '#4A5568'; 
-            finalSkillChipTextForPreview = '#F7FAFC';   
-        } else { 
-            finalSkillChipBgForPreview = '#E5E7EB'; 
-            finalSkillChipTextForPreview = '#1F2937';   
+        if (isDarkPortfolioText) {
+            finalSkillChipBgForPreview = '#4A5568';
+            finalSkillChipTextForPreview = '#F7FAFC';
+        } else {
+            finalSkillChipBgForPreview = '#E5E7EB';
+            finalSkillChipTextForPreview = '#1F2937';
         }
     }
 
 
     const portfolioDataForPreview = {
-        name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills, customSections,
+        name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills, customSections, // skills is now array of objects
         fontFamily, headingColor, bodyTextColor, accentColor,
         // --- NEW: Pass secondaryAccentColor to preview ---
         secondaryAccentColor,
-        templateId: activeTemplateIdForPreview, 
+        templateId: activeTemplateIdForPreview,
         headerLayout, skillDisplayStyle, sectionSpacing,
         skillIconChipBackgroundColor: finalSkillChipBgForPreview,
         skillIconChipTextColor: finalSkillChipTextForPreview,
     };
 
-    const arrowDown = '▼'; 
+    const arrowDown = '▼';
     const arrowUp = '▲';
 
     return (
@@ -589,7 +605,7 @@ function LivePortfolioEditor() {
                             <label htmlFor="name" className={labelClasses}>Full Name</label>
                             <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className={inputClasses} placeholder="Your Full Name" />
                         </div>
-                        <div> 
+                        <div>
                             <label htmlFor="profilePicture" className={labelClasses}>Profile Picture</label>
                             <input type="file" id="profilePicture" accept="image/*" onChange={handleProfilePictureChange} className={`${inputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`} />
                             {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
@@ -597,9 +613,9 @@ function LivePortfolioEditor() {
                                 {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
                                 {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
                                 {profilePicture && (
-                                    <button 
-                                        type="button" 
-                                        onClick={handleRemoveProfilePicture} 
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveProfilePicture}
                                         className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors"
                                         aria-label="Remove profile picture"
                                     >
@@ -608,34 +624,62 @@ function LivePortfolioEditor() {
                                 )}
                             </div>
                         </div>
-                        <div> 
+                        <div>
                             <label htmlFor="linkedinUrl" className={labelClasses}>LinkedIn URL</label>
                             <input type="url" id="linkedinUrl" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} className={inputClasses} placeholder="https://linkedin.com/in/yourprofile"/>
                         </div>
-                        <div> 
+                        <div>
                             <label htmlFor="githubUrl" className={labelClasses}>GitHub URL</label>
                             <input type="url" id="githubUrl" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} className={inputClasses} placeholder="https://github.com/yourusername"/>
                         </div>
-                        <div> 
+                        <div>
                             <label htmlFor="aboutMe" className={labelClasses}>About Me</label>
                             <textarea id="aboutMe" value={aboutMe} onChange={(e) => setAboutMe(e.target.value)} className={`${inputClasses} min-h-[100px]`} placeholder="Tell a bit about yourself..."/>
                         </div>
                     </div>
 
-                    {/* Skills Section */}
+                    {/* Skills Section - MODIFIED */}
                     <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
                         <h3 onClick={toggleSkills} className={sectionHeaderClasses}>
                             <span>Skills</span>
                             <span>{skillsVisible ? arrowUp : arrowDown}</span>
                         </h3>
-                        {skillsVisible && ( 
+                        {skillsVisible && (
                             <div className="skills-section mt-3 space-y-3">
-                                <div className="add-skill-input flex items-end space-x-2">
+                                <div className="add-skill-input flex items-start space-x-2"> {/* Changed items-end to items-start */}
                                     <div className="flex-grow">
-                                        <label htmlFor="newSkill" className={labelClasses}>Add Skill</label>
-                                        <input type="text" id="newSkill" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyPress={(e) => { if (e.key === 'Enter') handleAddSkill();}} className={`${inputClasses} md:w-full`} placeholder="e.g., React, JavaScript, Python"/>
+                                        <label htmlFor="newSkillName" className={labelClasses}>Skill Name</label>
+                                        <input
+                                            type="text"
+                                            id="newSkillName"
+                                            value={newSkillName}
+                                            onChange={(e) => setNewSkillName(e.target.value)}
+                                            onKeyPress={(e) => { if (e.key === 'Enter') handleAddSkill();}}
+                                            className={`${inputClasses} md:w-full`}
+                                            placeholder="e.g., React"
+                                        />
                                     </div>
-                                    <button type="button" onClick={handleAddSkill} className={`${buttonClasses} ${smallButtonClasses} self-end mb-px`}>Add</button>
+                                    <div className="flex-grow-0 w-1/3"> {/* Adjust width as needed */}
+                                        <label htmlFor="newSkillLevel" className={labelClasses}>Proficiency</label>
+                                        <select
+                                            id="newSkillLevel"
+                                            value={newSkillLevel}
+                                            onChange={(e) => setNewSkillLevel(e.target.value)}
+                                            className={`${inputClasses} md:w-full`}
+                                        >
+                                            <option value="Beginner">Beginner</option>
+                                            <option value="Intermediate">Intermediate</option>
+                                            <option value="Advanced">Advanced</option>
+                                            <option value="Expert">Expert</option>
+                                        </select>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddSkill}
+                                        className={`${buttonClasses} ${smallButtonClasses} self-end mb-px`} // Use self-end to align button with bottom of inputs
+                                    >
+                                        Add
+                                    </button>
                                 </div>
                                 {skills.length > 0 && (
                                     <Droppable droppableId="skillsDroppable" type="SKILLS">
@@ -645,8 +689,8 @@ function LivePortfolioEditor() {
                                                 {...provided.droppableProps}
                                                 className={`skills-list space-y-1 mt-2 ${snapshot.isDraggingOver ? 'bg-slate-700/20 rounded p-1' : ''}`}
                                             >
-                                                {skills.map((skill, index) => (
-                                                    <Draggable key={`skill-${skill}-${index}`} draggableId={`skill-${skill}-${index}`} index={index} isDragDisabled={isMobileView}>
+                                                {skills.map((skillObj, index) => ( // skill is now skillObj
+                                                    <Draggable key={`skill-${skillObj.name}-${index}`} draggableId={`skill-${skillObj.name}-${index}`} index={index} isDragDisabled={isMobileView}>
                                                         {(providedDraggable, snapshotDraggable) => (
                                                             <li
                                                                 ref={providedDraggable.innerRef}
@@ -656,12 +700,12 @@ function LivePortfolioEditor() {
                                                                 <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}>
                                                                     <DragHandleIcon className="w-4 h-4 text-slate-500" />
                                                                 </div>
-                                                                <span className="flex-grow">{skill}</span>
-                                                                <button 
-                                                                    type="button" 
-                                                                    onClick={() => handleRemoveSkill(skill)} 
+                                                                <span className="flex-grow">{skillObj.name} ({skillObj.level})</span> {/* Display name and level */}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRemoveSkill(skillObj.name)} // Pass skill name to remove
                                                                     className="text-rose-400 hover:text-rose-300 p-1 rounded-full hover:bg-slate-600 transition-colors"
-                                                                    aria-label={`Remove skill ${skill}`}
+                                                                    aria-label={`Remove skill ${skillObj.name}`}
                                                                 >
                                                                     <RemoveIcon className="w-4 h-4" />
                                                                 </button>
@@ -677,6 +721,7 @@ function LivePortfolioEditor() {
                             </div>
                         )}
                     </div>
+                    {/* END MODIFIED Skills Section */}
 
                     {/* Projects Section */}
                     <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
@@ -693,7 +738,7 @@ function LivePortfolioEditor() {
                                         className={`projects-section mt-3 space-y-2 ${snapshot.isDraggingOver ? 'bg-slate-700/30 rounded p-1' : ''}`}
                                     >
                                         {projects.map((project, index) => (
-                                            <Draggable key={project.id} draggableId={String(project.id)} index={index} isDragDisabled={isMobileView}> 
+                                            <Draggable key={project.id} draggableId={String(project.id)} index={index} isDragDisabled={isMobileView}>
                                                 {(providedDraggable, snapshotDraggable) => (
                                                     <div
                                                         ref={providedDraggable.innerRef}
@@ -705,16 +750,16 @@ function LivePortfolioEditor() {
                                                                 <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}>
                                                                     <DragHandleIcon />
                                                                 </div>
-                                                                <h4 
+                                                                <h4
                                                                     className="text-md font-semibold text-slate-200 flex-grow cursor-pointer"
                                                                     onClick={() => handleToggleProjectItemCollapse(project.id)}
                                                                 >
                                                                     {project.title || `Project ${index + 1}`}
                                                                 </h4>
                                                             </div>
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleToggleProjectItemCollapse(project.id)} 
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleToggleProjectItemCollapse(project.id)}
                                                                 className="p-1 text-slate-400 hover:text-slate-200 mr-2"
                                                                 aria-label={project.isCollapsed ? "Expand project details" : "Collapse project details"}
                                                             >
@@ -746,9 +791,9 @@ function LivePortfolioEditor() {
                                                                             <img src={projects[index].thumbnailUrl} alt="Project thumbnail" className="rounded max-h-28 object-contain"/>
                                                                         )}
                                                                         {projects[index].thumbnailUrl && (
-                                                                            <button 
-                                                                                type="button" 
-                                                                                onClick={() => handleRemoveProjectThumbnail(index)} 
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleRemoveProjectThumbnail(index)}
                                                                                 className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-600 transition-colors"
                                                                                 aria-label="Remove project thumbnail"
                                                                             >
@@ -775,7 +820,7 @@ function LivePortfolioEditor() {
                                                 )}
                                             </Draggable>
                                         ))}
-                                        {provided.placeholder} 
+                                        {provided.placeholder}
                                     </div>
                                 )}
                             </Droppable>
@@ -815,23 +860,23 @@ function LivePortfolioEditor() {
                                                                     value={section.sectionTitle}
                                                                     onChange={(e) => handleCustomSectionTitleChange(sectionIndex, e.target.value)}
                                                                     placeholder="Custom Section Title (e.g., Experience)"
-                                                                    className={`${inputClasses} text-lg font-semibold flex-grow !py-2`} 
+                                                                    className={`${inputClasses} text-lg font-semibold flex-grow !py-2`}
                                                                 />
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleRemoveCustomSection(section.id)}
-                                                                    className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors ml-2" 
+                                                                    className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors ml-2"
                                                                     aria-label="Remove this custom section block"
                                                                 >
                                                                     <RemoveIcon className="w-5 h-5" />
                                                                 </button>
                                                             </div>
-                                                            
+
                                                             <div className="space-y-3 p-3">
                                                                 {section.items && section.items.map((item, itemIndex) => (
                                                                     <div key={item.id} className="custom-section-entry bg-slate-700 p-3 rounded-md shadow">
                                                                         <div className="flex justify-between items-center mb-2">
-                                                                            <h5 
+                                                                            <h5
                                                                                 className="text-md font-medium text-slate-300 flex-grow cursor-pointer"
                                                                                 onClick={() => handleToggleCustomSectionItemCollapse(sectionIndex, item.id)}
                                                                             >
@@ -876,7 +921,7 @@ function LivePortfolioEditor() {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleAddCustomSectionItem(sectionIndex)}
-                                                                    className="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-3 rounded-full text-xs shadow-md transition-colors mt-2" 
+                                                                    className="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-3 rounded-full text-xs shadow-md transition-colors mt-2"
                                                                 >
                                                                     + Add Entry
                                                                 </button>
@@ -896,17 +941,17 @@ function LivePortfolioEditor() {
                                 >
                                     Add New Custom Section Block
                                 </button>
-                            </> 
+                            </>
                         )}
                     </div>
-                    
+
                     {/* Customize Styles & Layout Section */}
                     <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
                         <h3 onClick={toggleCustomizeStylesLayout} className={sectionHeaderClasses}>
                             <span>Customize Styles & Layout</span>
                             <span>{customizeStylesLayoutVisible ? arrowUp : arrowDown}</span>
                         </h3>
-                        {customizeStylesLayoutVisible && ( 
+                        {customizeStylesLayoutVisible && (
                             <div className="customization-section mt-3 space-y-6">
                                 <div>
                                     <label htmlFor="fontFamily" className={labelClasses}>Font Family</label>
@@ -919,9 +964,9 @@ function LivePortfolioEditor() {
                                 {/* --- NEW: Color Palette Selector for Styled Editor --- */}
                                 <div>
                                     <label htmlFor="colorPalette" className={labelClasses}>Color Palette</label>
-                                    <select 
-                                        id="colorPalette" 
-                                        onChange={(e) => handlePaletteChange(e.target.value)} 
+                                    <select
+                                        id="colorPalette"
+                                        onChange={(e) => handlePaletteChange(e.target.value)}
                                         className={inputClasses}
                                     >
                                         <option value="">Select a Palette (Optional)</option>
@@ -971,10 +1016,10 @@ function LivePortfolioEditor() {
                                 </div>
                                 <div>
                                     <label htmlFor="skillChipStyleOverride" className={labelClasses}>Skill Chip Background</label>
-                                    <select 
-                                        id="skillChipStyleOverride" 
-                                        value={skillChipStyleOverride} 
-                                        onChange={(e) => setSkillChipStyleOverride(e.target.value)} 
+                                    <select
+                                        id="skillChipStyleOverride"
+                                        value={skillChipStyleOverride}
+                                        onChange={(e) => setSkillChipStyleOverride(e.target.value)}
                                         className={inputClasses}
                                     >
                                         <option value="theme">Follow Template Default</option>
@@ -986,13 +1031,13 @@ function LivePortfolioEditor() {
                                     <label htmlFor="sectionSpacing" className={labelClasses}>
                                         Section Spacing (Preview): <span className="font-normal text-slate-400 text-xs">({sectionSpacing * 0.25}rem / {sectionSpacing * 4}px approx.)</span>
                                     </label>
-                                    <input 
-                                        type="range" 
-                                        id="sectionSpacing" 
-                                        min="0" 
-                                        max="8" 
-                                        step="1" 
-                                        value={sectionSpacing} 
+                                    <input
+                                        type="range"
+                                        id="sectionSpacing"
+                                        min="0"
+                                        max="8"
+                                        step="1"
+                                        value={sectionSpacing}
                                         onChange={(e) => setSectionSpacing(Number(e.target.value))}
                                         className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                                     />
@@ -1015,7 +1060,7 @@ function LivePortfolioEditor() {
                 </div>
 
                 {!isMobileView && (
-                    <div className="preview-area sticky top-[calc(theme(spacing.4)+env(safe-area-inset-top))] max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar bg-slate-900 rounded-xl shadow-2xl"> 
+                    <div className="preview-area sticky top-[calc(theme(spacing.4)+env(safe-area-inset-top))] max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar bg-slate-900 rounded-xl shadow-2xl">
                          <PortfolioDisplay portfolioData={portfolioDataForPreview} />
                     </div>
                 )}
