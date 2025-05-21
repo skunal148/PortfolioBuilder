@@ -34,7 +34,7 @@ const TrashIcon = ({ className = "w-5 h-5" }) => (
     </svg>
 );
 
-// --- Definitions (Fonts, Layouts, Skills - Keep your existing ones) ---
+// --- Definitions (Fonts, Layouts, Skills) ---
 const fontOptions = [ 
     { name: 'System Default', value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' },
     { name: 'Arial', value: 'Arial, Helvetica, sans-serif' },
@@ -58,9 +58,41 @@ const skillDisplayOptions = [
     { id: 'text-only-list', name: 'Text Only (List)' },
 ];
 
+// Default colors for styled templates (can be overridden by loaded data or template-specific logic)
 const defaultStyledHeadingColor = '#1F2937'; 
 const defaultStyledBodyTextColor = '#374151';
 const defaultStyledAccentColor = '#059669'; 
+const defaultStyledSecondaryAccentColor = '#6366F1'; // Example: Indigo
+
+// --- NEW: Predefined Color Palettes ---
+const predefinedColorPalettes = [
+    { 
+        name: 'Emerald & Indigo (Default)', 
+        headingColor: '#1F2937', bodyTextColor: '#374151', 
+        accentColor: '#059669', secondaryAccentColor: '#6366F1' 
+    },
+    { 
+        name: 'Sky & Rose', 
+        headingColor: '#0c4a6e', bodyTextColor: '#1e3a8a', 
+        accentColor: '#0284c7', secondaryAccentColor: '#e11d48' 
+    },
+    { 
+        name: 'Amber & Teal', 
+        headingColor: '#451a03', bodyTextColor: '#713f12', 
+        accentColor: '#f59e0b', secondaryAccentColor: '#14b8a6' 
+    },
+    {
+        name: 'Slate & Fuchsia',
+        headingColor: '#1e293b', bodyTextColor: '#334155',
+        accentColor: '#64748b', secondaryAccentColor: '#c026d3'
+    },
+    {
+        name: 'Charcoal & Lime',
+        headingColor: '#171717', bodyTextColor: '#262626',
+        accentColor: '#404040', secondaryAccentColor: '#84cc16'
+    }
+];
+
 
 // --- Helper Functions for Creating New Items ---
 const generateStableId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -109,10 +141,12 @@ function LivePortfolioEditor() {
     const [headingColor, setHeadingColor] = useState(defaultStyledHeadingColor);
     const [bodyTextColor, setBodyTextColor] = useState(defaultStyledBodyTextColor);
     const [accentColor, setAccentColor] = useState(defaultStyledAccentColor);
+    // --- NEW: State for Secondary Accent Color ---
+    const [secondaryAccentColor, setSecondaryAccentColor] = useState(defaultStyledSecondaryAccentColor);
+
     const [headerLayout, setHeaderLayout] = useState(headerLayoutOptions[0].id); 
     const [skillDisplayStyle, setSkillDisplayStyle] = useState(skillDisplayOptions[0].id);
     const [sectionSpacing, setSectionSpacing] = useState(4); 
-    // --- NEW: State for skill chip style override ---
     const [skillChipStyleOverride, setSkillChipStyleOverride] = useState('theme');
     
     // Editor UI Visibility States
@@ -189,10 +223,12 @@ function LivePortfolioEditor() {
                     setHeadingColor(data.headingColor || defaultStyledHeadingColor);
                     setBodyTextColor(data.bodyTextColor || defaultStyledBodyTextColor);
                     setAccentColor(data.accentColor || defaultStyledAccentColor);
+                    // --- NEW: Load secondaryAccentColor ---
+                    setSecondaryAccentColor(data.secondaryAccentColor || defaultStyledSecondaryAccentColor);
+
                     setHeaderLayout(data.headerLayout || headerLayoutOptions[0].id);
                     setSkillDisplayStyle(data.skillDisplayStyle || skillDisplayOptions[0].id);
                     setSectionSpacing(data.sectionSpacing !== undefined ? data.sectionSpacing : 4);
-                    // --- NEW: Load skillChipStyleOverride ---
                     setSkillChipStyleOverride(data.skillChipStyleOverride || 'theme');
                     
                     setProjectsVisible(data.projectsVisible !== undefined ? data.projectsVisible : true);
@@ -205,7 +241,8 @@ function LivePortfolioEditor() {
                     setError('Portfolio not found. Creating a new one with this style.');
                     setActiveTemplateIdForPreview(templateIdFromUrl); 
                     setProjects([createNewProject()]); 
-                    setSkillChipStyleOverride('theme'); // Default for new
+                    setSecondaryAccentColor(defaultStyledSecondaryAccentColor);
+                    setSkillChipStyleOverride('theme'); 
                 }
             } catch (err) {
                 console.error("Error loading portfolio data:", err);
@@ -219,8 +256,9 @@ function LivePortfolioEditor() {
             setHeadingColor(defaultStyledHeadingColor);
             setBodyTextColor(defaultStyledBodyTextColor);
             setAccentColor(defaultStyledAccentColor);
+            setSecondaryAccentColor(defaultStyledSecondaryAccentColor);
             setProjects([createNewProject()]);
-            setSkillChipStyleOverride('theme'); // Default for new
+            setSkillChipStyleOverride('theme'); 
             setLoading(false);
         } else {
             setError("Cannot load editor: Missing portfolio or template information."); 
@@ -267,7 +305,7 @@ function LivePortfolioEditor() {
             return currentImageUrl;
         }
         const fileName = `${pathPrefix}/${auth.currentUser.uid}/${Date.now()}_${file.name}`;
-        const storageRefFirebase = ref(storage, fileName);
+        const storageRefFirebase = ref(storage, fileName); 
         const uploadTask = uploadBytesResumable(storageRefFirebase, file);
         return new Promise((resolve, reject) => {
             uploadTask.on('state_changed',
@@ -339,6 +377,22 @@ function LivePortfolioEditor() {
         );
     };
 
+    // --- NEW: Handler for palette change ---
+    const handlePaletteChange = (paletteName) => {
+        const selected = predefinedColorPalettes.find(p => p.name === paletteName);
+        if (selected) {
+            setHeadingColor(selected.headingColor);
+            setBodyTextColor(selected.bodyTextColor);
+            setAccentColor(selected.accentColor);
+            setSecondaryAccentColor(selected.secondaryAccentColor);
+        } else { // "Select a Palette" option, reset to template defaults or global defaults
+            setHeadingColor(defaultStyledHeadingColor);
+            setBodyTextColor(defaultStyledBodyTextColor);
+            setAccentColor(defaultStyledAccentColor);
+            setSecondaryAccentColor(defaultStyledSecondaryAccentColor);
+        }
+    };
+
 
     // --- Save Portfolio ---
     const handleSavePortfolio = async () => {
@@ -402,8 +456,9 @@ function LivePortfolioEditor() {
                 linkedinUrl, githubUrl, aboutMe,
                 projects: projectsToSave, skills, customSections: customSectionsToSave,
                 fontFamily, headingColor, bodyTextColor, accentColor,
+                // --- NEW: Save secondaryAccentColor ---
+                secondaryAccentColor: secondaryAccentColor,
                 headerLayout, skillDisplayStyle, sectionSpacing,
-                // --- NEW: Save skillChipStyleOverride ---
                 skillChipStyleOverride: skillChipStyleOverride,
                 projectsVisible, skillsVisible, customSectionsVisible, customizeStylesLayoutVisible,
                 lastUpdated: serverTimestamp(),
@@ -481,38 +536,36 @@ function LivePortfolioEditor() {
     else if (isUploadingProfilePic) saveButtonText = 'Uploading Profile Pic...';
     else if (projects.some(p => p.isUploadingThumbnail)) saveButtonText = 'Uploading Thumbs...';
 
-    // --- NEW: Logic to determine final skill chip styles ---
-    let finalSkillChipBg;
-    let finalSkillChipText;
+    let finalSkillChipBgForPreview;
+    let finalSkillChipTextForPreview;
 
     if (skillChipStyleOverride === 'light') {
-        finalSkillChipBg = '#E2E8F0'; // Tailwind gray-200 (light background)
-        finalSkillChipText = '#2D3748'; // Tailwind gray-800 (dark text)
+        finalSkillChipBgForPreview = '#E2E8F0'; 
+        finalSkillChipTextForPreview = '#2D3748'; 
     } else if (skillChipStyleOverride === 'dark') {
-        finalSkillChipBg = '#2D3748'; // Tailwind slate-800 (dark background)
-        finalSkillChipText = '#E2E8F0'; // Tailwind gray-200 (light text)
-    } else { // 'theme' or default for styled templates
-        // For styled templates, if 'theme' is selected, we might use a generic contrasting style
-        // or derive from the template's main colors if specific chip colors aren't defined per template.
-        // Using a generic dark chip for light themes and light chip for dark themes as a fallback.
-        // This logic might need refinement based on how your styled templates are defined.
-        // For now, let's assume a default that contrasts with the bodyTextColor.
-        // A more robust way would be to have defaultChipBg/textColor in each styled template definition.
-        // For simplicity, let's use a common default for styled templates when 'theme' is chosen for chips.
-        finalSkillChipBg = defaultStyledBodyTextColor === '#374151' ? '#4A5568' : '#E5E7EB'; // Darker chip for light body, lighter for dark body
-        finalSkillChipText = defaultStyledBodyTextColor === '#374151' ? '#F7FAFC' : '#1F2937';
+        finalSkillChipBgForPreview = '#2D3748'; 
+        finalSkillChipTextForPreview = '#E2E8F0'; 
+    } else { 
+        const isDarkPortfolioText = headingColor.toLowerCase().startsWith('#e') || headingColor.toLowerCase().startsWith('#f') || bodyTextColor.toLowerCase().startsWith('#e') || bodyTextColor.toLowerCase().startsWith('#f');
+        if (isDarkPortfolioText) { 
+            finalSkillChipBgForPreview = '#4A5568'; 
+            finalSkillChipTextForPreview = '#F7FAFC';   
+        } else { 
+            finalSkillChipBgForPreview = '#E5E7EB'; 
+            finalSkillChipTextForPreview = '#1F2937';   
+        }
     }
-    // --- END NEW ---
 
 
     const portfolioDataForPreview = {
         name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills, customSections,
         fontFamily, headingColor, bodyTextColor, accentColor,
+        // --- NEW: Pass secondaryAccentColor to preview ---
+        secondaryAccentColor,
         templateId: activeTemplateIdForPreview, 
         headerLayout, skillDisplayStyle, sectionSpacing,
-        // --- NEW: Pass resolved skill chip styles to preview ---
-        skillIconChipBackgroundColor: finalSkillChipBg,
-        skillIconChipTextColor: finalSkillChipText,
+        skillIconChipBackgroundColor: finalSkillChipBgForPreview,
+        skillIconChipTextColor: finalSkillChipTextForPreview,
     };
 
     const arrowDown = '▼'; 
@@ -863,7 +916,24 @@ function LivePortfolioEditor() {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {/* --- NEW: Color Palette Selector for Styled Editor --- */}
+                                <div>
+                                    <label htmlFor="colorPalette" className={labelClasses}>Color Palette</label>
+                                    <select 
+                                        id="colorPalette" 
+                                        onChange={(e) => handlePaletteChange(e.target.value)} 
+                                        className={inputClasses}
+                                    >
+                                        <option value="">Select a Palette (Optional)</option>
+                                        {predefinedColorPalettes.map(palette => (
+                                            <option key={palette.name} value={palette.name}>
+                                                {palette.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {/* --- END NEW --- */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4"> {/* Adjusted to 2 columns for better fit */}
                                     <div>
                                         <label htmlFor="headingColor" className={labelClasses}>Heading Color</label>
                                         <input type="color" id="headingColor" value={headingColor} onChange={(e) => setHeadingColor(e.target.value)} className={`${inputClasses} h-12 p-1 w-full`} />
@@ -873,9 +943,15 @@ function LivePortfolioEditor() {
                                         <input type="color" id="bodyTextColor" value={bodyTextColor} onChange={(e) => setBodyTextColor(e.target.value)} className={`${inputClasses} h-12 p-1 w-full`} />
                                     </div>
                                     <div>
-                                        <label htmlFor="accentColor" className={labelClasses}>Accent Color</label>
+                                        <label htmlFor="accentColor" className={labelClasses}>Primary Accent</label>
                                         <input type="color" id="accentColor" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className={`${inputClasses} h-12 p-1 w-full`} />
                                     </div>
+                                    {/* --- NEW: Secondary Accent Color Picker --- */}
+                                    <div>
+                                        <label htmlFor="secondaryAccentColor" className={labelClasses}>Secondary Accent</label>
+                                        <input type="color" id="secondaryAccentColor" value={secondaryAccentColor} onChange={(e) => setSecondaryAccentColor(e.target.value)} className={`${inputClasses} h-12 p-1 w-full`} />
+                                    </div>
+                                    {/* --- END NEW --- */}
                                 </div>
                                 <div>
                                     <label htmlFor="headerLayout" className={labelClasses}>Header Layout</label>
@@ -893,7 +969,6 @@ function LivePortfolioEditor() {
                                         ))}
                                     </select>
                                 </div>
-                                {/* --- NEW: Skill Chip Style Override UI --- */}
                                 <div>
                                     <label htmlFor="skillChipStyleOverride" className={labelClasses}>Skill Chip Background</label>
                                     <select 
@@ -907,7 +982,6 @@ function LivePortfolioEditor() {
                                         <option value="dark">Dark Background Chips</option>
                                     </select>
                                 </div>
-                                {/* --- END NEW --- */}
                                 <div>
                                     <label htmlFor="sectionSpacing" className={labelClasses}>
                                         Section Spacing (Preview): <span className="font-normal text-slate-400 text-xs">({sectionSpacing * 0.25}rem / {sectionSpacing * 4}px approx.)</span>
