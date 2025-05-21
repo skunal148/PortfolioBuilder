@@ -28,6 +28,13 @@ const ChevronUpIcon = ({ className = "w-5 h-5" }) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
     </svg>
 );
+// --- NEW: Trash Icon for deleting images ---
+const TrashIcon = ({ className = "w-5 h-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+    </svg>
+);
+
 
 // --- Definitions (Fonts, Layouts, Skills - Keep your existing ones) ---
 const fontOptions = [ 
@@ -53,12 +60,10 @@ const skillDisplayOptions = [
     { id: 'text-only-list', name: 'Text Only (List)' },
 ];
 
-// Default colors for styled templates (can be overridden by loaded data or template-specific logic)
 const defaultStyledHeadingColor = '#1F2937'; 
 const defaultStyledBodyTextColor = '#374151';
-const defaultStyledAccentColor = '#059669'; // Example: Emerald
+const defaultStyledAccentColor = '#059669'; 
 
-// --- Helper Functions for Creating New Items ---
 const generateStableId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 const createNewProject = () => ({ 
@@ -184,7 +189,7 @@ function LivePortfolioEditor() {
                 } else {
                     setError('Portfolio not found. Creating a new one with this style.');
                     setActiveTemplateIdForPreview(templateIdFromUrl); 
-                    setProjects([createNewProject()]); // Initialize for new
+                    setProjects([createNewProject()]); 
                 }
             } catch (err) {
                 console.error("Error loading portfolio data:", err);
@@ -285,6 +290,15 @@ function LivePortfolioEditor() {
         reader.readAsDataURL(file);
     };
 
+    // --- NEW: Handler to remove profile picture ---
+    const handleRemoveProfilePicture = () => {
+        setProfilePicture('');
+        setProfilePictureFile(null);
+        // Note: This does not delete from Firebase Storage.
+        // Deletion from storage would typically happen on save if the URL is empty,
+        // or via a separate "delete from storage" function if needed.
+    };
+
     const handleProjectThumbnailChange = async (projectIndex, event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -302,6 +316,18 @@ function LivePortfolioEditor() {
         reader.readAsDataURL(file);
     };
 
+    // --- NEW: Handler to remove a project's thumbnail ---
+    const handleRemoveProjectThumbnail = (projectIndex) => {
+        setProjects(prevProjects => 
+            prevProjects.map((p, idx) => 
+                idx === projectIndex 
+                ? { ...p, thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0 } 
+                : p
+            )
+        );
+    };
+
+
     // --- Save Portfolio ---
     const handleSavePortfolio = async () => {
         if (!auth.currentUser) { setError("You must be logged in to save your portfolio."); return; }
@@ -315,7 +341,10 @@ function LivePortfolioEditor() {
                 finalProfilePictureUrl = await handleImageUpload(profilePictureFile, 'profilePictures_styled', (progress) => {/* Progress */});
                 setProfilePictureFile(null); 
                 setIsUploadingProfilePic(false);
+            } else if (!profilePicture) { // If profilePicture state is empty (e.g., after deletion)
+                finalProfilePictureUrl = ''; // Ensure it's saved as empty
             }
+
 
             for (let i = 0; i < finalProjects.length; i++) {
                 if (finalProjects[i].thumbnailFile) {
@@ -324,7 +353,7 @@ function LivePortfolioEditor() {
                         finalProjects[i].thumbnailFile, 
                         `projectThumbnails_styled/${finalProjects[i].id}`, 
                         (progress) => {
-                            const progressProjects = [...finalProjects]; // Create new array for state update
+                            const progressProjects = [...projects]; // Use current projects state for progress update
                             if(progressProjects[i]) progressProjects[i].thumbnailUploadProgress = progress;
                             setProjects(progressProjects); 
                         },
@@ -333,9 +362,13 @@ function LivePortfolioEditor() {
                     finalProjects[i].thumbnailUrl = thumbnailUrl;
                     finalProjects[i].thumbnailFile = null; 
                     finalProjects[i].isUploadingThumbnail = false;
+                } else if (!finalProjects[i].thumbnailUrl) { // If thumbnailUrl is empty (e.g. after deletion)
+                     finalProjects[i].thumbnailUrl = ''; // Ensure it's saved as empty
                 }
             }
-            setProjects(finalProjects); 
+            // Update projects state once after all uploads (or if no uploads needed)
+            // This ensures the UI reflects the final URLs before saving project data
+            setProjects(finalProjects.map(p => ({...p, isUploadingThumbnail: false, thumbnailUploadProgress: 0}))); 
 
             const projectsToSave = finalProjects.map(p => ({
                 id: String(p.id), title: p.title, description: p.description,
@@ -469,8 +502,23 @@ function LivePortfolioEditor() {
                             <label htmlFor="profilePicture" className={labelClasses}>Profile Picture</label>
                             <input type="file" id="profilePicture" accept="image/*" onChange={handleProfilePictureChange} className={`${inputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`} />
                             {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
-                            {profilePicture && profilePicture.startsWith('data:') && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="mt-2 rounded-full h-20 w-20 object-cover"/>}
-                            {profilePicture && !profilePicture.startsWith('data:') && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="mt-2 rounded-full h-20 w-20 object-cover"/>}
+                            <div className="mt-2 flex items-center space-x-2">
+                                {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-20 w-20 object-cover"/>}
+                                {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-20 w-20 object-cover"/>}
+                                {profilePicture && (
+                                    <button 
+                                        type="button" 
+                                        onClick={handleRemoveProfilePicture} 
+                                        className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors"
+                                        aria-label="Remove profile picture"
+                                    >
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </div>
+                            {profilePicture && !profilePicture.startsWith('data:') && !isUploadingProfilePic && (
+                                <p className="text-xs text-emerald-400 mt-1">Profile picture uploaded.</p>
+                            )}
                         </div>
                         <div> 
                             <label htmlFor="linkedinUrl" className={labelClasses}>LinkedIn URL</label>
@@ -602,11 +650,26 @@ function LivePortfolioEditor() {
                                                                     <label htmlFor={`project-thumbnail-${project.id}`} className={labelClasses}>Project Thumbnail</label>
                                                                     <input type="file" id={`project-thumbnail-${project.id}`} accept="image/*" onChange={(e) => handleProjectThumbnailChange(index, e)} className={`${inputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`} />
                                                                     {projects[index].isUploadingThumbnail && <p className="text-xs text-slate-400 mt-1">Uploading thumbnail ({projects[index].thumbnailUploadProgress?.toFixed(0) || 0}%)...</p>}
+                                                                    <div className="mt-2 flex items-center space-x-2">
+                                                                        {projects[index].thumbnailUrl && projects[index].thumbnailUrl.startsWith('data:') && !projects[index].isUploadingThumbnail && (
+                                                                            <img src={projects[index].thumbnailUrl} alt="Project thumbnail preview" className="rounded max-h-28 object-contain"/>
+                                                                        )}
+                                                                        {projects[index].thumbnailUrl && !projects[index].thumbnailUrl.startsWith('data:') && !projects[index].isUploadingThumbnail && (
+                                                                            <img src={projects[index].thumbnailUrl} alt="Project thumbnail" className="rounded max-h-28 object-contain"/>
+                                                                        )}
+                                                                        {projects[index].thumbnailUrl && (
+                                                                            <button 
+                                                                                type="button" 
+                                                                                onClick={() => handleRemoveProjectThumbnail(index)} 
+                                                                                className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-600 transition-colors"
+                                                                                aria-label="Remove project thumbnail"
+                                                                            >
+                                                                                <TrashIcon className="w-5 h-5" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                     {projects[index].thumbnailUrl && !projects[index].thumbnailUrl.startsWith('data:') && !projects[index].isUploadingThumbnail && (
                                                                         <p className="text-xs text-emerald-400 mt-1">Thumbnail uploaded.</p>
-                                                                    )}
-                                                                    {projects[index].thumbnailUrl && projects[index].thumbnailUrl.startsWith('data:') && !projects[index].isUploadingThumbnail && (
-                                                                        <img src={projects[index].thumbnailUrl} alt="Project thumbnail preview" className="mt-2 rounded max-h-28 object-contain"/>
                                                                     )}
                                                                 </div>
                                                                 <div>

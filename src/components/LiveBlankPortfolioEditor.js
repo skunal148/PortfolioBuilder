@@ -31,6 +31,13 @@ const ChevronUpIcon = ({ className = "w-5 h-5" }) => (
     </svg>
 );
 
+const TrashIcon = ({ className = "w-5 h-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+    </svg>
+);
+
+
 const predefinedBackgroundThemes = [ 
   { id: 'blank-default', name: 'Default (Dark)', style: { backgroundColor: '#374151' }, headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#34D399' },
   { id: 'light-gentle', name: 'Light Gentle', style: { backgroundColor: '#F3F4F6' }, headingColor: '#1F2937', bodyTextColor: '#374151', accentColor: '#3B82F6' },
@@ -120,7 +127,7 @@ function LiveBlankPortfolioEditor() {
 
     const [projectsVisible, setProjectsVisible] = useState(true); 
     const [skillsVisible, setSkillsVisible] = useState(true); 
-    const [customizeVisible, setCustomizeVisible] = useState(false); 
+    const [customizeVisible, setCustomizeVisible] = useState(false); // This is the correct state variable
 
     const MAX_PROJECT_THUMBNAIL_SIZE = 2 * 1024 * 1024; 
     const MAX_PROFILE_PIC_SIZE = 5 * 1024 * 1024;       
@@ -204,7 +211,7 @@ function LiveBlankPortfolioEditor() {
                     setSectionSpacing(data.sectionSpacing !== undefined ? data.sectionSpacing : 4);
                     setProjectsVisible(data.projectsVisible !== undefined ? data.projectsVisible : true);
                     setSkillsVisible(data.skillsVisible !== undefined ? data.skillsVisible : true); 
-                    setCustomizeVisible(data.customizeVisible !== undefined ? data.customizeVisible : false);
+                    setCustomizeVisible(data.customizeVisible !== undefined ? data.customizeVisible : false); // Use the correct state setter
                     setCustomSectionsVisible(data.customSectionsVisible !== undefined ? data.customSectionsVisible : false);
                 } else { setError('Portfolio not found!'); }
             } catch (err) { setError(err.message || 'Failed to load portfolio data.');
@@ -222,40 +229,21 @@ function LiveBlankPortfolioEditor() {
         loadPortfolioData(); 
     }, [loadPortfolioData]);
 
-    const handleAddProject = () => setProjects([...projects, createNewProject()]);
-    const handleProjectChange = (index, field, value) => setProjects(projects.map((p, i) => i === index ? { ...p, [field]: value } : p));
-    const handleRemoveProject = (projectId) => setProjects(projects.filter(p => p.id !== projectId));
-    const handleToggleProjectItemCollapse = (projectId) => {
-        setProjects(prevProjects => 
-            prevProjects.map(p => 
-                p.id === projectId ? { ...p, isCollapsed: !p.isCollapsed } : p
-            )
-        );
-    };
+    const handleAddProject = () => setProjects(prev => [...prev, createNewProject()]);
+    const handleProjectChange = (index, field, value) => setProjects(prev => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+    const handleRemoveProject = (projectId) => setProjects(prev => prev.filter(p => p.id !== projectId));
+    const handleToggleProjectItemCollapse = (projectId) => setProjects(prev => prev.map(p => p.id === projectId ? { ...p, isCollapsed: !p.isCollapsed } : p));
     
-    const handleAddCustomSection = () => setCustomSections(prevSections => [...prevSections, createNewCustomSection()]);
-    const handleCustomSectionTitleChange = (sectionIndex, newTitle) => setCustomSections(prevSections => prevSections.map((section, i) => i === sectionIndex ? { ...section, sectionTitle: newTitle } : section));
-    const handleRemoveCustomSection = (idToRemove) => setCustomSections(prevSections => prevSections.filter(section => section.id !== idToRemove));
-    const handleAddCustomSectionItem = (sectionIndex) => setCustomSections(prevSections => prevSections.map((section, i) => i === sectionIndex ? { ...section, items: [...section.items, createNewCustomSectionItem()] } : section));
-    const handleCustomSectionItemChange = (sectionIndex, itemIndex, field, value) => setCustomSections(prevSections => prevSections.map((section, i) => i === sectionIndex ? { ...section, items: section.items.map((item, j) => j === itemIndex ? { ...item, [field]: value } : item) } : section));
-    const handleRemoveCustomSectionItem = (sectionIndex, itemIdToRemove) => setCustomSections(prevSections => prevSections.map((section, i) => i === sectionIndex ? { ...section, items: section.items.filter(item => item.id !== itemIdToRemove) } : section));
-    const handleToggleCustomSectionItemCollapse = (sectionIndex, itemId) => {
-        setCustomSections(prevSections =>
-            prevSections.map((section, i) =>
-                i === sectionIndex
-                    ? {
-                        ...section,
-                        items: section.items.map(item =>
-                            item.id === itemId ? { ...item, isCollapsed: !item.isCollapsed } : item
-                        )
-                      }
-                    : section
-            )
-        );
-    };
-
+    const handleAddCustomSection = () => setCustomSections(prev => [...prev, createNewCustomSection()]);
+    const handleCustomSectionTitleChange = (sectionIndex, title) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, sectionTitle: title } : s));
+    const handleRemoveCustomSection = (sectionId) => setCustomSections(prev => prev.filter(s => s.id !== sectionId));
+    const handleAddCustomSectionItem = (sectionIndex) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: [...s.items, createNewCustomSectionItem()] } : s));
+    const handleCustomSectionItemChange = (sectionIndex, itemIndex, field, value) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.map((item, j) => j === itemIndex ? { ...item, [field]: value } : item) } : s));
+    const handleRemoveCustomSectionItem = (sectionIndex, itemId) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.filter(item => item.id !== itemId) } : s));
+    const handleToggleCustomSectionItemCollapse = (sectionIndex, itemId) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.map(item => item.id === itemId ? { ...item, isCollapsed: !item.isCollapsed } : item) } : s));
+    
     const toggleProjects = () => setProjectsVisible(!projectsVisible);
-    const toggleCustomize = () => setCustomizeVisible(!customizeVisible);
+    const toggleCustomize = () => setCustomizeVisible(!customizeVisible); // This is the correct toggle function
     const toggleSkills = () => setSkillsVisible(!skillsVisible); 
     const toggleCustomSections = () => setCustomSectionsVisible(!customSectionsVisible);
 
@@ -314,6 +302,24 @@ function LiveBlankPortfolioEditor() {
         }
     };
 
+    const handleRemoveProjectThumbnail = (projectIndex) => {
+        setProjects(prevProjects => 
+            prevProjects.map((p, idx) => 
+                idx === projectIndex 
+                ? { ...p, thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0 } 
+                : p
+            )
+        );
+    };
+
+    // --- NEW: Define handleRemoveProfilePicture ---
+    const handleRemoveProfilePicture = () => {
+        setProfilePicture('');
+        setProfilePictureFile(null);
+        // Note: This only clears the state. Actual deletion from Firebase Storage
+        // would happen on save if `profilePicture` is empty, or via a dedicated delete function.
+    };
+
     const handleSavePortfolio = async () => { 
         if (!auth.currentUser) { setError("You must be logged in to save."); return; }
         if (isUploadingProfilePic || (profilePictureFile && profilePicture.startsWith('data:'))) { 
@@ -328,6 +334,28 @@ function LiveBlankPortfolioEditor() {
         }
         setLoading(true); setError(null); 
         let finalCustomBgImageUrl = customBackgroundImageUrl;
+        let finalProfilePictureUrl = profilePicture;
+
+
+        if (profilePictureFile) {
+            setIsUploadingProfilePic(true);
+            try {
+                const storagePath = `profilePictures/${auth.currentUser.uid}/${Date.now()}_${profilePictureFile.name}`;
+                const storageRefFirebase = ref(storage, storagePath);
+                const uploadTask = uploadBytesResumable(storageRefFirebase, profilePictureFile);
+                const snapshot = await uploadTask;
+                finalProfilePictureUrl = await getDownloadURL(snapshot.ref);
+                setProfilePicture(finalProfilePictureUrl); 
+                setProfilePictureFile(null); 
+            } catch (uploadError) {
+                setError("Profile Picture Upload failed: " + uploadError.message);
+                setIsUploadingProfilePic(false); setLoading(false); return;
+            }
+            setIsUploadingProfilePic(false);
+        } else if (!profilePicture) { 
+            finalProfilePictureUrl = '';
+        }
+
 
         if (backgroundType === 'customImage' && customBackgroundImageFile) { 
             setIsUploadingBackground(true); setBackgroundUploadProgress(0);
@@ -341,11 +369,36 @@ function LiveBlankPortfolioEditor() {
                 setIsUploadingBackground(false); setLoading(false); return;
             }
         }
-        await savePortfolioDataToFirestore(finalCustomBgImageUrl);
+        
+        const finalProjects = [...projects]; 
+        for (let i = 0; i < finalProjects.length; i++) {
+            if (finalProjects[i].thumbnailFile) { 
+                finalProjects[i].isUploadingThumbnail = true;
+                try {
+                    const thumbStoragePath = `projectThumbnails/${auth.currentUser.uid}/${finalProjects[i].id || Date.now()}/${finalProjects[i].thumbnailFile.name}`;
+                    const thumbStorageRef = ref(storage, thumbStoragePath);
+                    const thumbUploadTask = uploadBytesResumable(thumbStorageRef, finalProjects[i].thumbnailFile);
+                    const thumbSnapshot = await thumbUploadTask;
+                    finalProjects[i].thumbnailUrl = await getDownloadURL(thumbSnapshot.ref);
+                    finalProjects[i].thumbnailFile = null; 
+                } catch (thumbError) {
+                     setError(`Failed to upload thumbnail for Project ${i + 1}. Save aborted.`);
+                     finalProjects[i].isUploadingThumbnail = false; 
+                     setProjects(finalProjects); 
+                     setLoading(false); return;
+                }
+                finalProjects[i].isUploadingThumbnail = false;
+            } else if (!finalProjects[i].thumbnailUrl) { 
+                finalProjects[i].thumbnailUrl = '';
+            }
+        }
+        setProjects(finalProjects); 
+
+        await savePortfolioDataToFirestore(finalCustomBgImageUrl, finalProfilePictureUrl, finalProjects); 
     };
 
-    const savePortfolioDataToFirestore = async (bgImageUrlForSave) => {
-        const projectsToSave = projects.map(p => ({
+    const savePortfolioDataToFirestore = async (bgImageUrlForSave, profilePicUrlForSave, projectsForSave) => {
+        const projectsToSave = projectsForSave.map(p => ({ 
             id: String(p.id), 
             title: p.title, description: p.description,
             thumbnailUrl: p.thumbnailUrl && !p.thumbnailUrl.startsWith('data:') ? p.thumbnailUrl : '', 
@@ -368,7 +421,7 @@ function LiveBlankPortfolioEditor() {
 
         const portfolioData = {
             userId: auth.currentUser.uid, templateId: BLANK_TEMPLATE_ID,
-            name, profilePicture, 
+            name, profilePicture: profilePicUrlForSave, 
             linkedinUrl, 
             githubUrl,   
             aboutMe, 
@@ -423,27 +476,8 @@ function LiveBlankPortfolioEditor() {
         }
         setProfilePictureFile(file); 
         const reader = new FileReader();
-        reader.onloadend = () => setProfilePicture(reader.result);
+        reader.onloadend = () => setProfilePicture(reader.result); 
         reader.readAsDataURL(file);
-        setIsUploadingProfilePic(true); setError(null);
-        try {
-            const storageRefFirebase = ref(storage, `profilePictures/${auth.currentUser.uid}/${Date.now()}_${file.name}`);
-            const uploadTask = uploadBytesResumable(storageRefFirebase, file);
-            uploadTask.on('state_changed', (snapshot) => {},
-                (uploadError) => {
-                    setError("Profile Pic Upload failed: " + uploadError.message);
-                    setIsUploadingProfilePic(false); setProfilePictureFile(null); setProfilePicture('');
-                },
-                async () => {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                    setProfilePicture(downloadURL); 
-                    setIsUploadingProfilePic(false); setProfilePictureFile(null); 
-                }
-            );
-        } catch (initUploadError) {
-            setError("Profile Pic Upload failed to start.");
-            setIsUploadingProfilePic(false); setProfilePictureFile(null);
-        }
     };
     const handleCustomBackgroundChange = (event) => { 
         const file = event.target.files?.[0];
@@ -581,14 +615,25 @@ function LiveBlankPortfolioEditor() {
                             <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className={inputClasses} placeholder="Your Full Name" />
                         </div>
                         <div> 
-                            <label htmlFor="profilePicture" className={labelClasses}>Profile Picture URL or Upload</label>
+                            <label htmlFor="profilePicture" className={labelClasses}>Profile Picture</label>
                             <input type="file" id="profilePicture" accept="image/*" onChange={handleProfilePictureChange} className={`${inputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`} />
-                            {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading Profile Pic...</p>}
+                            {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
+                            <div className="mt-2 flex items-center space-x-2">
+                                {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-20 w-20 object-cover"/>}
+                                {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-20 w-20 object-cover"/>}
+                                {profilePicture && (
+                                    <button 
+                                        type="button" 
+                                        onClick={handleRemoveProfilePicture} 
+                                        className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors"
+                                        aria-label="Remove profile picture"
+                                    >
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </div>
                             {profilePicture && !profilePicture.startsWith('data:') && !isUploadingProfilePic && (
                                 <p className="text-xs text-emerald-400 mt-1">Profile picture uploaded.</p>
-                            )}
-                             {profilePicture && profilePicture.startsWith('data:') && !isUploadingProfilePic && (
-                                <img src={profilePicture} alt="Profile preview" className="mt-2 rounded-full max-h-20 object-contain"/>
                             )}
                         </div>
                         <div> 
@@ -717,12 +762,27 @@ function LiveBlankPortfolioEditor() {
                                                                 <div>
                                                                     <label htmlFor={`project-thumbnail-${project.id}`} className={labelClasses}>Project Thumbnail</label>
                                                                     <input type="file" id={`project-thumbnail-${project.id}`} accept="image/*" onChange={(e) => handleProjectThumbnailChange(index, e)} className={`${inputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`} />
-                                                                    {project.isUploadingThumbnail && <p className="text-xs text-slate-400 mt-1">Uploading thumbnail ({project.thumbnailUploadProgress?.toFixed(0) || 0}%)...</p>}
-                                                                    {project.thumbnailUrl && !project.thumbnailUrl.startsWith('data:') && !project.isUploadingThumbnail && (
+                                                                    {projects[index].isUploadingThumbnail && <p className="text-xs text-slate-400 mt-1">Uploading thumbnail ({projects[index].thumbnailUploadProgress?.toFixed(0) || 0}%)...</p>}
+                                                                    <div className="mt-2 flex items-center space-x-2">
+                                                                        {projects[index].thumbnailUrl && projects[index].thumbnailUrl.startsWith('data:') && !projects[index].isUploadingThumbnail && (
+                                                                            <img src={projects[index].thumbnailUrl} alt="Project thumbnail preview" className="rounded max-h-28 object-contain"/>
+                                                                        )}
+                                                                        {projects[index].thumbnailUrl && !projects[index].thumbnailUrl.startsWith('data:') && !projects[index].isUploadingThumbnail && (
+                                                                            <img src={projects[index].thumbnailUrl} alt="Project thumbnail" className="rounded max-h-28 object-contain"/>
+                                                                        )}
+                                                                        {projects[index].thumbnailUrl && (
+                                                                            <button 
+                                                                                type="button" 
+                                                                                onClick={() => handleRemoveProjectThumbnail(index)} 
+                                                                                className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-600 transition-colors"
+                                                                                aria-label="Remove project thumbnail"
+                                                                            >
+                                                                                <TrashIcon className="w-5 h-5" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                    {projects[index].thumbnailUrl && !projects[index].thumbnailUrl.startsWith('data:') && !projects[index].isUploadingThumbnail && (
                                                                         <p className="text-xs text-emerald-400 mt-1">Thumbnail uploaded.</p>
-                                                                    )}
-                                                                    {project.thumbnailUrl && project.thumbnailUrl.startsWith('data:') && !project.isUploadingThumbnail && (
-                                                                        <img src={project.thumbnailUrl} alt="Project thumbnail preview" className="mt-2 rounded max-h-28 object-contain"/>
                                                                     )}
                                                                 </div>
                                                                 <div>
@@ -868,6 +928,7 @@ function LiveBlankPortfolioEditor() {
                     </div>
                     
                     <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
+                        {/* --- MODIFIED: Using correct toggle function and visibility state --- */}
                         <h3 onClick={toggleCustomize} className={sectionHeaderClasses}>
                             <span>Customize Styles & Layout</span>
                             <span>{customizeVisible ? arrowUp : arrowDown}</span>
