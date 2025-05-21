@@ -133,7 +133,7 @@ function PortfolioDisplay({ portfolioData }) {
     headingColor,
     bodyTextColor,
     accentColor,
-    secondaryAccentColor,
+    //secondaryAccentColor,
     templateId,
     backgroundType,
     selectedBackgroundTheme,
@@ -150,7 +150,7 @@ function PortfolioDisplay({ portfolioData }) {
   const finalHeadingColor = headingColor || '#E5E7EB';
   const finalBodyTextColor = bodyTextColor || '#D1D5DB';
   const finalAccentColor = accentColor || '#34D399';
-  const finalSecondaryAccentColor = secondaryAccentColor || '#A78BFA';
+  //const finalSecondaryAccentColor = secondaryAccentColor || '#A78BFA';
 
   const finalSkillChipBg = skillIconChipBackgroundColor || (finalBodyTextColor === '#D1D5DB' ? '#4A5568' : '#E5E7EB');
   const finalSkillChipText = skillIconChipTextColor || (finalBodyTextColor === '#D1D5DB' ? '#F7FAFC' : '#1F2937');
