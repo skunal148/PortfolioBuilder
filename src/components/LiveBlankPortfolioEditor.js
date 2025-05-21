@@ -39,11 +39,46 @@ const TrashIcon = ({ className = "w-5 h-5" }) => (
 
 
 const predefinedBackgroundThemes = [ 
-  { id: 'blank-default', name: 'Default (Dark)', style: { backgroundColor: '#374151' }, headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#34D399' },
-  { id: 'light-gentle', name: 'Light Gentle', style: { backgroundColor: '#F3F4F6' }, headingColor: '#1F2937', bodyTextColor: '#374151', accentColor: '#3B82F6' },
-  { id: 'ocean-breeze', name: 'Ocean Breeze', style: { backgroundImage: 'linear-gradient(to top right, #00c6ff, #0072ff)' }, headingColor: '#FFFFFF', bodyTextColor: '#E0F2FE', accentColor: '#FDE047' },
-  { id: 'sunset-glow', name: 'Sunset Glow', style: { backgroundImage: 'linear-gradient(to top right, #ff7e5f, #feb47b)' }, headingColor: '#FFFFFF', bodyTextColor: '#FFF7ED', accentColor: '#8B5CF6' },
-  { id: 'deep-space', name: 'Deep Space', style: { backgroundImage: 'linear-gradient(to bottom, #232526, #414345)' }, headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#A78BFA' },
+  { 
+    id: 'blank-default', name: 'Default (Dark)', 
+    style: { backgroundColor: '#374151' }, 
+    headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#34D399',
+    secondaryAccentColor: '#A78BFA', // Added for consistency with palettes
+    skillIconChipBackgroundColor: '#4A5568', 
+    skillIconChipTextColor: '#F7FAFC'
+  },
+  { 
+    id: 'light-gentle', name: 'Light Gentle', 
+    style: { backgroundColor: '#F3F4F6' }, 
+    headingColor: '#1F2937', bodyTextColor: '#374151', accentColor: '#3B82F6',
+    secondaryAccentColor: '#EC4899',
+    skillIconChipBackgroundColor: '#E5E7EB', 
+    skillIconChipTextColor: '#1F2937'
+  },
+  { 
+    id: 'ocean-breeze', name: 'Ocean Breeze', 
+    style: { backgroundImage: 'linear-gradient(to top right, #00c6ff, #0072ff)' }, 
+    headingColor: '#FFFFFF', bodyTextColor: '#E0F2FE', accentColor: '#FDE047',
+    secondaryAccentColor: '#FF7E5F',
+    skillIconChipBackgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    skillIconChipTextColor: '#FFFFFF'
+  },
+  { 
+    id: 'sunset-glow', name: 'Sunset Glow', 
+    style: { backgroundImage: 'linear-gradient(to top right, #ff7e5f, #feb47b)' }, 
+    headingColor: '#FFFFFF', bodyTextColor: '#FFF7ED', accentColor: '#8B5CF6',
+    secondaryAccentColor: '#FFC700',
+    skillIconChipBackgroundColor: 'rgba(255, 255, 255, 0.25)', 
+    skillIconChipTextColor: '#FFFFFF'
+  },
+  { 
+    id: 'deep-space', name: 'Deep Space', 
+    style: { backgroundImage: 'linear-gradient(to bottom, #232526, #414345)' }, 
+    headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#A78BFA',
+    secondaryAccentColor: '#FBBF24',
+    skillIconChipBackgroundColor: 'rgba(255, 255, 255, 0.1)', 
+    skillIconChipTextColor: '#E5E7EB'
+  },
 ];
 const fontOptions = [ 
     { name: 'System Default', value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' },
@@ -67,6 +102,40 @@ const skillDisplayOptions = [
     { id: 'icon-only-chip', name: 'Icon Only (Chip)' },
     { id: 'text-only-list', name: 'Text Only (List)' },
 ];
+
+const predefinedColorPalettes = [
+    { 
+        name: 'Default Dark', 
+        headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', 
+        accentColor: '#34D399', secondaryAccentColor: '#A78BFA' 
+    },
+    { 
+        name: 'Default Light', 
+        headingColor: '#1F2937', bodyTextColor: '#374151', 
+        accentColor: '#3B82F6', secondaryAccentColor: '#EC4899' 
+    },
+    { 
+        name: 'Ocean Deep', 
+        headingColor: '#E0F2FE', bodyTextColor: '#93C5FD', 
+        accentColor: '#38BDF8', secondaryAccentColor: '#FDE047' 
+    },
+    { 
+        name: 'Forest Whisper', 
+        headingColor: '#D1FAE5', bodyTextColor: '#A7F3D0', 
+        accentColor: '#34D399', secondaryAccentColor: '#F59E0B' 
+    },
+    {
+        name: 'Sunset Fire',
+        headingColor: '#FFF7ED', bodyTextColor: '#FED7AA',
+        accentColor: '#F97316', secondaryAccentColor: '#D946EF'
+    },
+    {
+        name: 'Royal Purple',
+        headingColor: '#E9D5FF', bodyTextColor: '#C084FC',
+        accentColor: '#A855F7', secondaryAccentColor: '#FACC15'
+    }
+];
+
 
 const generateStableId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -114,9 +183,13 @@ function LiveBlankPortfolioEditor() {
     const [headingColor, setHeadingColor] = useState(initialTheme.headingColor);
     const [bodyTextColor, setBodyTextColor] = useState(initialTheme.bodyTextColor);
     const [accentColor, setAccentColor] = useState(initialTheme.accentColor);
+    const [secondaryAccentColor, setSecondaryAccentColor] = useState(initialTheme.secondaryAccentColor || predefinedColorPalettes[0].secondaryAccentColor); 
+
     const [headerLayout, setHeaderLayout] = useState(headerLayoutOptions[0].id); 
     const [skillDisplayStyle, setSkillDisplayStyle] = useState(skillDisplayOptions[0].id);
     const [sectionSpacing, setSectionSpacing] = useState(4); 
+    const [skillChipStyleOverride, setSkillChipStyleOverride] = useState('theme'); 
+
 
     const [backgroundType, setBackgroundType] = useState('theme'); 
     const [selectedBackgroundTheme, setSelectedBackgroundTheme] = useState(initialTheme.id); 
@@ -127,7 +200,7 @@ function LiveBlankPortfolioEditor() {
 
     const [projectsVisible, setProjectsVisible] = useState(true); 
     const [skillsVisible, setSkillsVisible] = useState(true); 
-    const [customizeVisible, setCustomizeVisible] = useState(false); // This is the correct state variable
+    const [customizeVisible, setCustomizeVisible] = useState(true); 
 
     const MAX_PROJECT_THUMBNAIL_SIZE = 2 * 1024 * 1024; 
     const MAX_PROFILE_PIC_SIZE = 5 * 1024 * 1024;       
@@ -137,7 +210,20 @@ function LiveBlankPortfolioEditor() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 1024);
+
+
     const BLANK_TEMPLATE_ID = 'blank'; 
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobileView(window.innerWidth < 1024); 
+        };
+        window.addEventListener('resize', handleResize);
+        handleResize(); 
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
 
     const loadPortfolioData = useCallback(async () => { 
         setLoading(true);
@@ -176,10 +262,13 @@ function LiveBlankPortfolioEditor() {
                     setBackgroundType(loadedBgType); 
                     const loadedThemeId = data.selectedBackgroundTheme || predefinedBackgroundThemes[0].id;
                     setSelectedBackgroundTheme(loadedThemeId);
+                    
                     const themeForColors = predefinedBackgroundThemes.find(t => t.id === loadedThemeId) || predefinedBackgroundThemes[0];
                     setHeadingColor(data.headingColor || themeForColors.headingColor);
                     setBodyTextColor(data.bodyTextColor || themeForColors.bodyTextColor);
                     setAccentColor(data.accentColor || themeForColors.accentColor);
+                    setSecondaryAccentColor(data.secondaryAccentColor || themeForColors.secondaryAccentColor || predefinedColorPalettes[0].secondaryAccentColor); 
+
                     setSkills(Array.isArray(data.skills) ? data.skills : []);
                     
                     setCustomSections(
@@ -201,6 +290,8 @@ function LiveBlankPortfolioEditor() {
                         : []
                     );
 
+                    setSkillChipStyleOverride(data.skillChipStyleOverride || 'theme');
+
                     if (loadedBgType === 'customImage') {
                         setCustomBackgroundImageUrl(data.customBackgroundImageUrl || '');
                     } else {
@@ -211,7 +302,7 @@ function LiveBlankPortfolioEditor() {
                     setSectionSpacing(data.sectionSpacing !== undefined ? data.sectionSpacing : 4);
                     setProjectsVisible(data.projectsVisible !== undefined ? data.projectsVisible : true);
                     setSkillsVisible(data.skillsVisible !== undefined ? data.skillsVisible : true); 
-                    setCustomizeVisible(data.customizeVisible !== undefined ? data.customizeVisible : false); // Use the correct state setter
+                    setCustomizeVisible(data.customizeVisible !== undefined ? data.customizeVisible : true); 
                     setCustomSectionsVisible(data.customSectionsVisible !== undefined ? data.customSectionsVisible : false);
                 } else { setError('Portfolio not found!'); }
             } catch (err) { setError(err.message || 'Failed to load portfolio data.');
@@ -221,6 +312,8 @@ function LiveBlankPortfolioEditor() {
             setHeadingColor(currentInitialTheme.headingColor);
             setBodyTextColor(currentInitialTheme.bodyTextColor);
             setAccentColor(currentInitialTheme.accentColor);
+            setSecondaryAccentColor(currentInitialTheme.secondaryAccentColor || predefinedColorPalettes[0].secondaryAccentColor);
+            setSkillChipStyleOverride('theme'); 
             setLoading(false);
         }
     }, [id]); 
@@ -243,7 +336,7 @@ function LiveBlankPortfolioEditor() {
     const handleToggleCustomSectionItemCollapse = (sectionIndex, itemId) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.map(item => item.id === itemId ? { ...item, isCollapsed: !item.isCollapsed } : item) } : s));
     
     const toggleProjects = () => setProjectsVisible(!projectsVisible);
-    const toggleCustomize = () => setCustomizeVisible(!customizeVisible); // This is the correct toggle function
+    const toggleCustomize = () => setCustomizeVisible(!customizeVisible); 
     const toggleSkills = () => setSkillsVisible(!skillsVisible); 
     const toggleCustomSections = () => setCustomSectionsVisible(!customSectionsVisible);
 
@@ -312,12 +405,9 @@ function LiveBlankPortfolioEditor() {
         );
     };
 
-    // --- NEW: Define handleRemoveProfilePicture ---
     const handleRemoveProfilePicture = () => {
         setProfilePicture('');
         setProfilePictureFile(null);
-        // Note: This only clears the state. Actual deletion from Firebase Storage
-        // would happen on save if `profilePicture` is empty, or via a dedicated delete function.
     };
 
     const handleSavePortfolio = async () => { 
@@ -426,11 +516,14 @@ function LiveBlankPortfolioEditor() {
             githubUrl,   
             aboutMe, 
             projects: projectsToSave, 
-            fontFamily, headingColor, bodyTextColor, accentColor, headerLayout, 
+            fontFamily, headingColor, bodyTextColor, accentColor, 
+            secondaryAccentColor: secondaryAccentColor,
+            headerLayout, 
             skills, skillDisplayStyle, sectionSpacing, 
             customSections: customSectionsToSave, 
             projectsVisible, customizeVisible, skillsVisible, 
             customSectionsVisible, 
+            skillChipStyleOverride: skillChipStyleOverride,
             lastUpdated: serverTimestamp(),
             backgroundType,
             selectedBackgroundTheme: backgroundType === 'theme' ? selectedBackgroundTheme : null,
@@ -500,6 +593,7 @@ function LiveBlankPortfolioEditor() {
             setHeadingColor(theme.headingColor || '#E5E7EB');
             setBodyTextColor(theme.bodyTextColor || '#D1D5DB');
             setAccentColor(theme.accentColor || '#34D399');
+            setSecondaryAccentColor(theme.secondaryAccentColor || predefinedColorPalettes.find(p=>p.name === 'Default Dark')?.secondaryAccentColor || '#A78BFA'); 
         }
     };
 
@@ -515,8 +609,20 @@ function LiveBlankPortfolioEditor() {
             setHeadingColor(currentSelectedThemeObj.headingColor);
             setBodyTextColor(currentSelectedThemeObj.bodyTextColor);
             setAccentColor(currentSelectedThemeObj.accentColor);
+            setSecondaryAccentColor(currentSelectedThemeObj.secondaryAccentColor || predefinedColorPalettes[0].secondaryAccentColor);
         }
     };
+
+    const handlePaletteChange = (paletteName) => {
+        const selected = predefinedColorPalettes.find(p => p.name === paletteName);
+        if (selected) {
+            setHeadingColor(selected.headingColor);
+            setBodyTextColor(selected.bodyTextColor);
+            setAccentColor(selected.accentColor);
+            setSecondaryAccentColor(selected.secondaryAccentColor);
+        }
+    };
+
 
     const handleAddSkill = () => { 
         if (newSkill.trim() && !skills.includes(newSkill.trim())) {
@@ -525,15 +631,16 @@ function LiveBlankPortfolioEditor() {
         }
     };
     const handleRemoveSkill = (skillToRemove) => setSkills(skills.filter(skill => skill !== skillToRemove));
+    
     const handleViewLivePortfolio = () => { 
         if (id) { 
             const unsavedChanges = profilePictureFile || customBackgroundImageFile || projects.some(p => p.thumbnailFile); 
             if (unsavedChanges) {
                 if (window.confirm("You have unsaved changes that will not be reflected in the live view until you save. View anyway?")) {
-                    window.open(`/portfolio/${id}`, '_blank');
+                    navigate(`/portfolio/${id}`);
                 }
             } else {
-                 window.open(`/portfolio/${id}`, '_blank');
+                 navigate(`/portfolio/${id}`);
             }
         } else {
             setError("Please save the portfolio first to view it live.");
@@ -589,25 +696,44 @@ function LiveBlankPortfolioEditor() {
     else if (projects.some(p => p.isUploadingThumbnail)) saveButtonText = 'Uploading Thumbs...';
     else if (loading) saveButtonText = 'Processing...'; 
 
+    let finalSkillChipBg;
+    let finalSkillChipText;
+    const currentSelectedThemeObject = predefinedBackgroundThemes.find(t => t.id === selectedBackgroundTheme) || predefinedBackgroundThemes[0];
+
+    if (skillChipStyleOverride === 'light') {
+        finalSkillChipBg = '#E2E8F0'; 
+        finalSkillChipText = '#2D3748'; 
+    } else if (skillChipStyleOverride === 'dark') {
+        finalSkillChipBg = '#2D3748'; 
+        finalSkillChipText = '#E2E8F0'; 
+    } else { 
+        finalSkillChipBg = currentSelectedThemeObject.skillIconChipBackgroundColor || '#4A5568';
+        finalSkillChipText = currentSelectedThemeObject.skillIconChipTextColor || bodyTextColor; 
+    }
+
     const portfolioDataForPreview = {
         name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills,
         fontFamily, headingColor, bodyTextColor, accentColor,
+        secondaryAccentColor,
         templateId: BLANK_TEMPLATE_ID, 
         backgroundType, selectedBackgroundTheme, customBackgroundImageUrl,
         headerLayout, skillDisplayStyle, sectionSpacing,
         customSections, 
+        skillIconChipBackgroundColor: finalSkillChipBg,
+        skillIconChipTextColor: finalSkillChipText,
     };
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <div className="live-portfolio-editor-container container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-editor gap-8 items-start" style={{gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)'}}>
-                <div className="input-area bg-slate-800 p-6 rounded-xl shadow-2xl space-y-8 max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar">
+            <div className={`live-portfolio-editor-container container mx-auto p-4 md:p-6 grid ${isMobileView ? 'grid-cols-1' : 'lg:grid-cols-2'} gap-6 items-start`}>
+                <div className={`input-area bg-slate-800 p-4 sm:p-6 rounded-xl shadow-2xl space-y-6 ${isMobileView ? 'w-full' : 'max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar'}`}>
                      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-                        <h2 className="text-3xl font-bold text-slate-100 mb-4 sm:mb-0">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-4 sm:mb-0 text-center sm:text-left">
                             {id ? 'Edit Your Portfolio (Blank)' : 'Create Blank Portfolio'}
                         </h2>
-                        {id && ( <button onClick={handleViewLivePortfolio} className={`${secondaryButtonClasses} py-2 px-5 text-sm whitespace-nowrap`}> View Live Portfolio </button> )}
+                        {id && ( <button onClick={handleViewLivePortfolio} className={`${secondaryButtonClasses} py-2 px-4 text-xs sm:text-sm whitespace-nowrap mt-2 sm:mt-0`}> View Live Portfolio </button> )}
                     </div>
+                    {/* Basic Info Section */}
                     <div className="input-section bg-slate-850 p-4 rounded-lg grid grid-cols-1 gap-y-6">
                         <h3 className="text-xl font-semibold text-emerald-400">Basic Information</h3>
                         <div>
@@ -619,8 +745,8 @@ function LiveBlankPortfolioEditor() {
                             <input type="file" id="profilePicture" accept="image/*" onChange={handleProfilePictureChange} className={`${inputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`} />
                             {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
                             <div className="mt-2 flex items-center space-x-2">
-                                {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-20 w-20 object-cover"/>}
-                                {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-20 w-20 object-cover"/>}
+                                {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
+                                {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
                                 {profilePicture && (
                                     <button 
                                         type="button" 
@@ -649,6 +775,7 @@ function LiveBlankPortfolioEditor() {
                             <textarea id="aboutMe" value={aboutMe} onChange={(e) => setAboutMe(e.target.value)} className={`${inputClasses} min-h-[100px]`} placeholder="Tell a bit about yourself..."/>
                         </div>
                     </div>
+                    {/* Skills Section */}
                     <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
                         <h3 onClick={toggleSkills} className={sectionHeaderClasses}>
                             <span>Skills</span>
@@ -672,14 +799,14 @@ function LiveBlankPortfolioEditor() {
                                                 className={`skills-list space-y-1 mt-2 ${snapshot.isDraggingOver ? 'bg-slate-700/20 rounded p-1' : ''}`}
                                             >
                                                 {skills.map((skill, index) => (
-                                                    <Draggable key={`skill-${skill}-${index}`} draggableId={`skill-${skill}-${index}`} index={index}>
+                                                    <Draggable key={`skill-${skill}-${index}`} draggableId={`skill-${skill}-${index}`} index={index} isDragDisabled={isMobileView}>
                                                         {(providedDraggable, snapshotDraggable) => (
                                                             <li
                                                                 ref={providedDraggable.innerRef}
                                                                 {...providedDraggable.draggableProps}
                                                                 className={`flex justify-between items-center bg-slate-700 p-2 rounded text-sm text-slate-200 ${snapshotDraggable.isDragging ? 'shadow-lg ring-1 ring-emerald-400' : ''}`}
                                                             >
-                                                                <div {...providedDraggable.dragHandleProps} className="p-1 mr-2 cursor-grab active:cursor-grabbing">
+                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}>
                                                                     <DragHandleIcon className="w-4 h-4 text-slate-500" />
                                                                 </div>
                                                                 <span className="flex-grow">{skill}</span>
@@ -703,7 +830,7 @@ function LiveBlankPortfolioEditor() {
                             </div>
                         )}
                     </div>
-
+                    {/* Projects Section */}
                     <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
                         <h3 onClick={toggleProjects} className={sectionHeaderClasses}>
                             <span>Projects</span>
@@ -718,7 +845,7 @@ function LiveBlankPortfolioEditor() {
                                         className={`projects-section mt-3 space-y-2 ${snapshot.isDraggingOver ? 'bg-slate-700/30 rounded p-1' : ''}`}
                                     >
                                         {projects.map((project, index) => (
-                                            <Draggable key={project.id} draggableId={String(project.id)} index={index}> 
+                                            <Draggable key={project.id} draggableId={String(project.id)} index={index} isDragDisabled={isMobileView}> 
                                                 {(providedDraggable, snapshotDraggable) => (
                                                     <div
                                                         ref={providedDraggable.innerRef}
@@ -727,7 +854,7 @@ function LiveBlankPortfolioEditor() {
                                                     >
                                                         <div className="flex justify-between items-center p-3 border-b border-slate-600">
                                                             <div className="flex items-center flex-grow">
-                                                                <div {...providedDraggable.dragHandleProps} className="p-1 mr-2 cursor-grab active:cursor-grabbing">
+                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}>
                                                                     <DragHandleIcon />
                                                                 </div>
                                                                 <h4 
@@ -810,7 +937,7 @@ function LiveBlankPortfolioEditor() {
                         )}
                         <button type="button" onClick={handleAddProject} className={`${buttonClasses} w-full py-3 text-base mt-4`}>Add Another Project</button>
                     </div>
-
+                    {/* Custom Sections UI */}
                     <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
                         <h3 onClick={toggleCustomSections} className={sectionHeaderClasses}>
                             <span>Custom Sections</span>
@@ -826,7 +953,7 @@ function LiveBlankPortfolioEditor() {
                                             className={`custom-sections-list mt-3 space-y-2 ${snapshot.isDraggingOver ? 'bg-slate-700/20 rounded p-1' : ''}`}
                                         >
                                             {customSections.map((section, sectionIndex) => (
-                                                <Draggable key={section.id} draggableId={String(section.id)} index={sectionIndex}>
+                                                <Draggable key={section.id} draggableId={String(section.id)} index={sectionIndex} isDragDisabled={isMobileView}>
                                                     {(providedDraggable, snapshotDraggable) => (
                                                         <div
                                                             ref={providedDraggable.innerRef}
@@ -834,7 +961,7 @@ function LiveBlankPortfolioEditor() {
                                                             className={`custom-section-block-editor bg-slate-750 rounded-lg border border-slate-700 ${snapshotDraggable.isDragging ? 'shadow-xl ring-2 ring-emerald-500' : ''}`}
                                                         >
                                                             <div className="flex justify-between items-center p-3 border-b border-slate-600">
-                                                                <div {...providedDraggable.dragHandleProps} className="p-1 mr-2 cursor-grab active:cursor-grabbing">
+                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}>
                                                                     <DragHandleIcon />
                                                                 </div>
                                                                 <input
@@ -927,8 +1054,8 @@ function LiveBlankPortfolioEditor() {
                         )}
                     </div>
                     
+                    {/* Customize Styles & Layout Section */}
                     <div className="collapsible-section bg-slate-850 p-4 rounded-lg">
-                        {/* --- MODIFIED: Using correct toggle function and visibility state --- */}
                         <h3 onClick={toggleCustomize} className={sectionHeaderClasses}>
                             <span>Customize Styles & Layout</span>
                             <span>{customizeVisible ? arrowUp : arrowDown}</span>
@@ -943,7 +1070,22 @@ function LiveBlankPortfolioEditor() {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label htmlFor="colorPalette" className={labelClasses}>Color Palette</label>
+                                    <select 
+                                        id="colorPalette" 
+                                        onChange={(e) => handlePaletteChange(e.target.value)} 
+                                        className={inputClasses}
+                                    >
+                                        <option value="">Select a Palette (Optional)</option>
+                                        {predefinedColorPalettes.map(palette => (
+                                            <option key={palette.name} value={palette.name}>
+                                                {palette.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4"> 
                                     <div>
                                         <label htmlFor="headingColor" className={labelClasses}>Heading Color</label>
                                         <input type="color" id="headingColor" value={headingColor} onChange={(e) => setHeadingColor(e.target.value)} className={`${inputClasses} h-12 p-1 w-full`} />
@@ -953,8 +1095,12 @@ function LiveBlankPortfolioEditor() {
                                         <input type="color" id="bodyTextColor" value={bodyTextColor} onChange={(e) => setBodyTextColor(e.target.value)} className={`${inputClasses} h-12 p-1 w-full`} />
                                     </div>
                                     <div>
-                                        <label htmlFor="accentColor" className={labelClasses}>Accent Color</label>
+                                        <label htmlFor="accentColor" className={labelClasses}>Primary Accent</label>
                                         <input type="color" id="accentColor" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className={`${inputClasses} h-12 p-1 w-full`} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="secondaryAccentColor" className={labelClasses}>Secondary Accent</label>
+                                        <input type="color" id="secondaryAccentColor" value={secondaryAccentColor} onChange={(e) => setSecondaryAccentColor(e.target.value)} className={`${inputClasses} h-12 p-1 w-full`} />
                                     </div>
                                 </div>
                                 <div>
@@ -971,6 +1117,19 @@ function LiveBlankPortfolioEditor() {
                                         {skillDisplayOptions.map(option => (
                                             <option key={option.id} value={option.id}>{option.name}</option>
                                         ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="skillChipStyleOverride" className={labelClasses}>Skill Chip Background</label>
+                                    <select 
+                                        id="skillChipStyleOverride" 
+                                        value={skillChipStyleOverride} 
+                                        onChange={(e) => setSkillChipStyleOverride(e.target.value)} 
+                                        className={inputClasses}
+                                    >
+                                        <option value="theme">Follow Main Theme</option>
+                                        <option value="light">Light Background Chips</option>
+                                        <option value="dark">Dark Background Chips</option>
                                     </select>
                                 </div>
                                 <div>
@@ -993,6 +1152,7 @@ function LiveBlankPortfolioEditor() {
                                         <span>Spacious</span>
                                     </div>
                                 </div>
+                                {/* Background Style options for Blank Template Editor are here */}
                                 <div>
                                     <label className={labelClasses}>Background Style</label>
                                     <div className="flex space-x-4 mb-3">
@@ -1043,9 +1203,11 @@ function LiveBlankPortfolioEditor() {
                     {error && <p className="text-red-400 text-sm mt-4 text-center">{error}</p>}
                 </div>
 
-                <div className="preview-area sticky top-[calc(theme(spacing.4)+env(safe-area-inset-top))] max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar bg-slate-900 rounded-xl shadow-2xl"> 
-                     <PortfolioDisplay portfolioData={portfolioDataForPreview} />
-                </div>
+                {!isMobileView && (
+                    <div className="preview-area sticky top-[calc(theme(spacing.4)+env(safe-area-inset-top))] max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar bg-slate-900 rounded-xl shadow-2xl"> 
+                         <PortfolioDisplay portfolioData={portfolioDataForPreview} />
+                    </div>
+                )}
             </div>
         </DragDropContext>
     );

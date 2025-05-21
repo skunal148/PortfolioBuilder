@@ -28,13 +28,11 @@ const ChevronUpIcon = ({ className = "w-5 h-5" }) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
     </svg>
 );
-// --- NEW: Trash Icon for deleting images ---
 const TrashIcon = ({ className = "w-5 h-5" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
     </svg>
 );
-
 
 // --- Definitions (Fonts, Layouts, Skills - Keep your existing ones) ---
 const fontOptions = [ 
@@ -64,6 +62,7 @@ const defaultStyledHeadingColor = '#1F2937';
 const defaultStyledBodyTextColor = '#374151';
 const defaultStyledAccentColor = '#059669'; 
 
+// --- Helper Functions for Creating New Items ---
 const generateStableId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 const createNewProject = () => ({ 
@@ -113,6 +112,8 @@ function LivePortfolioEditor() {
     const [headerLayout, setHeaderLayout] = useState(headerLayoutOptions[0].id); 
     const [skillDisplayStyle, setSkillDisplayStyle] = useState(skillDisplayOptions[0].id);
     const [sectionSpacing, setSectionSpacing] = useState(4); 
+    // --- NEW: State for skill chip style override ---
+    const [skillChipStyleOverride, setSkillChipStyleOverride] = useState('theme');
     
     // Editor UI Visibility States
     const [projectsVisible, setProjectsVisible] = useState(true);
@@ -126,7 +127,19 @@ function LivePortfolioEditor() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 1024);
+    
     const MAX_FILE_SIZE = 2 * 1024 * 1024; 
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobileView(window.innerWidth < 1024); 
+        };
+        window.addEventListener('resize', handleResize);
+        handleResize(); 
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
 
     const loadPortfolioData = useCallback(async () => {
         setLoading(true);
@@ -179,6 +192,8 @@ function LivePortfolioEditor() {
                     setHeaderLayout(data.headerLayout || headerLayoutOptions[0].id);
                     setSkillDisplayStyle(data.skillDisplayStyle || skillDisplayOptions[0].id);
                     setSectionSpacing(data.sectionSpacing !== undefined ? data.sectionSpacing : 4);
+                    // --- NEW: Load skillChipStyleOverride ---
+                    setSkillChipStyleOverride(data.skillChipStyleOverride || 'theme');
                     
                     setProjectsVisible(data.projectsVisible !== undefined ? data.projectsVisible : true);
                     setSkillsVisible(data.skillsVisible !== undefined ? data.skillsVisible : true);
@@ -190,6 +205,7 @@ function LivePortfolioEditor() {
                     setError('Portfolio not found. Creating a new one with this style.');
                     setActiveTemplateIdForPreview(templateIdFromUrl); 
                     setProjects([createNewProject()]); 
+                    setSkillChipStyleOverride('theme'); // Default for new
                 }
             } catch (err) {
                 console.error("Error loading portfolio data:", err);
@@ -204,6 +220,7 @@ function LivePortfolioEditor() {
             setBodyTextColor(defaultStyledBodyTextColor);
             setAccentColor(defaultStyledAccentColor);
             setProjects([createNewProject()]);
+            setSkillChipStyleOverride('theme'); // Default for new
             setLoading(false);
         } else {
             setError("Cannot load editor: Missing portfolio or template information."); 
@@ -250,8 +267,8 @@ function LivePortfolioEditor() {
             return currentImageUrl;
         }
         const fileName = `${pathPrefix}/${auth.currentUser.uid}/${Date.now()}_${file.name}`;
-        const storageRef = ref(storage, fileName);
-        const uploadTask = uploadBytesResumable(storageRef, file);
+        const storageRefFirebase = ref(storage, fileName);
+        const uploadTask = uploadBytesResumable(storageRefFirebase, file);
         return new Promise((resolve, reject) => {
             uploadTask.on('state_changed',
                 (snapshot) => {
@@ -290,13 +307,9 @@ function LivePortfolioEditor() {
         reader.readAsDataURL(file);
     };
 
-    // --- NEW: Handler to remove profile picture ---
     const handleRemoveProfilePicture = () => {
         setProfilePicture('');
         setProfilePictureFile(null);
-        // Note: This does not delete from Firebase Storage.
-        // Deletion from storage would typically happen on save if the URL is empty,
-        // or via a separate "delete from storage" function if needed.
     };
 
     const handleProjectThumbnailChange = async (projectIndex, event) => {
@@ -316,7 +329,6 @@ function LivePortfolioEditor() {
         reader.readAsDataURL(file);
     };
 
-    // --- NEW: Handler to remove a project's thumbnail ---
     const handleRemoveProjectThumbnail = (projectIndex) => {
         setProjects(prevProjects => 
             prevProjects.map((p, idx) => 
@@ -333,7 +345,7 @@ function LivePortfolioEditor() {
         if (!auth.currentUser) { setError("You must be logged in to save your portfolio."); return; }
         setLoading(true); setError('');
         let finalProfilePictureUrl = profilePicture;
-        let finalProjects = [...projects];
+        let finalProjects = [...projects]; 
 
         try {
             if (profilePictureFile) {
@@ -341,8 +353,8 @@ function LivePortfolioEditor() {
                 finalProfilePictureUrl = await handleImageUpload(profilePictureFile, 'profilePictures_styled', (progress) => {/* Progress */});
                 setProfilePictureFile(null); 
                 setIsUploadingProfilePic(false);
-            } else if (!profilePicture) { // If profilePicture state is empty (e.g., after deletion)
-                finalProfilePictureUrl = ''; // Ensure it's saved as empty
+            } else if (!profilePicture) { 
+                finalProfilePictureUrl = '';
             }
 
 
@@ -353,7 +365,7 @@ function LivePortfolioEditor() {
                         finalProjects[i].thumbnailFile, 
                         `projectThumbnails_styled/${finalProjects[i].id}`, 
                         (progress) => {
-                            const progressProjects = [...projects]; // Use current projects state for progress update
+                            const progressProjects = [...projects]; 
                             if(progressProjects[i]) progressProjects[i].thumbnailUploadProgress = progress;
                             setProjects(progressProjects); 
                         },
@@ -362,12 +374,10 @@ function LivePortfolioEditor() {
                     finalProjects[i].thumbnailUrl = thumbnailUrl;
                     finalProjects[i].thumbnailFile = null; 
                     finalProjects[i].isUploadingThumbnail = false;
-                } else if (!finalProjects[i].thumbnailUrl) { // If thumbnailUrl is empty (e.g. after deletion)
-                     finalProjects[i].thumbnailUrl = ''; // Ensure it's saved as empty
+                } else if (!finalProjects[i].thumbnailUrl) { 
+                     finalProjects[i].thumbnailUrl = ''; 
                 }
             }
-            // Update projects state once after all uploads (or if no uploads needed)
-            // This ensures the UI reflects the final URLs before saving project data
             setProjects(finalProjects.map(p => ({...p, isUploadingThumbnail: false, thumbnailUploadProgress: 0}))); 
 
             const projectsToSave = finalProjects.map(p => ({
@@ -393,6 +403,8 @@ function LivePortfolioEditor() {
                 projects: projectsToSave, skills, customSections: customSectionsToSave,
                 fontFamily, headingColor, bodyTextColor, accentColor,
                 headerLayout, skillDisplayStyle, sectionSpacing,
+                // --- NEW: Save skillChipStyleOverride ---
+                skillChipStyleOverride: skillChipStyleOverride,
                 projectsVisible, skillsVisible, customSectionsVisible, customizeStylesLayoutVisible,
                 lastUpdated: serverTimestamp(),
             };
@@ -469,12 +481,38 @@ function LivePortfolioEditor() {
     else if (isUploadingProfilePic) saveButtonText = 'Uploading Profile Pic...';
     else if (projects.some(p => p.isUploadingThumbnail)) saveButtonText = 'Uploading Thumbs...';
 
+    // --- NEW: Logic to determine final skill chip styles ---
+    let finalSkillChipBg;
+    let finalSkillChipText;
+
+    if (skillChipStyleOverride === 'light') {
+        finalSkillChipBg = '#E2E8F0'; // Tailwind gray-200 (light background)
+        finalSkillChipText = '#2D3748'; // Tailwind gray-800 (dark text)
+    } else if (skillChipStyleOverride === 'dark') {
+        finalSkillChipBg = '#2D3748'; // Tailwind slate-800 (dark background)
+        finalSkillChipText = '#E2E8F0'; // Tailwind gray-200 (light text)
+    } else { // 'theme' or default for styled templates
+        // For styled templates, if 'theme' is selected, we might use a generic contrasting style
+        // or derive from the template's main colors if specific chip colors aren't defined per template.
+        // Using a generic dark chip for light themes and light chip for dark themes as a fallback.
+        // This logic might need refinement based on how your styled templates are defined.
+        // For now, let's assume a default that contrasts with the bodyTextColor.
+        // A more robust way would be to have defaultChipBg/textColor in each styled template definition.
+        // For simplicity, let's use a common default for styled templates when 'theme' is chosen for chips.
+        finalSkillChipBg = defaultStyledBodyTextColor === '#374151' ? '#4A5568' : '#E5E7EB'; // Darker chip for light body, lighter for dark body
+        finalSkillChipText = defaultStyledBodyTextColor === '#374151' ? '#F7FAFC' : '#1F2937';
+    }
+    // --- END NEW ---
+
 
     const portfolioDataForPreview = {
         name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills, customSections,
         fontFamily, headingColor, bodyTextColor, accentColor,
         templateId: activeTemplateIdForPreview, 
         headerLayout, skillDisplayStyle, sectionSpacing,
+        // --- NEW: Pass resolved skill chip styles to preview ---
+        skillIconChipBackgroundColor: finalSkillChipBg,
+        skillIconChipTextColor: finalSkillChipText,
     };
 
     const arrowDown = '▼'; 
@@ -482,13 +520,13 @@ function LivePortfolioEditor() {
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <div className="live-portfolio-editor-container container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-editor gap-8 items-start" style={{gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)'}}>
-                <div className="input-area bg-slate-800 p-6 rounded-xl shadow-2xl space-y-8 max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar">
+            <div className={`live-portfolio-editor-container container mx-auto p-4 md:p-6 grid ${isMobileView ? 'grid-cols-1' : 'lg:grid-cols-2'} gap-6 items-start`}>
+                <div className={`input-area bg-slate-800 p-4 sm:p-6 rounded-xl shadow-2xl space-y-6 ${isMobileView ? 'w-full' : 'max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar'}`}>
                     <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-                        <h2 className="text-3xl font-bold text-slate-100 mb-4 sm:mb-0">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-4 sm:mb-0 text-center sm:text-left">
                             {id ? `Edit Portfolio (Style: ${activeTemplateIdForPreview})` : `Create Portfolio (Style: ${activeTemplateIdForPreview})`}
                         </h2>
-                        {id && ( <button onClick={() => navigate(`/portfolio/${id}`)} className={`${secondaryButtonClasses} py-2 px-5 text-sm whitespace-nowrap`}> View Live Portfolio </button> )}
+                        {id && ( <button onClick={() => navigate(`/portfolio/${id}`)} className={`${secondaryButtonClasses} py-2 px-4 text-xs sm:text-sm whitespace-nowrap mt-2 sm:mt-0`}> View Live Portfolio </button> )}
                     </div>
 
                     {/* Basic Info Section */}
@@ -503,8 +541,8 @@ function LivePortfolioEditor() {
                             <input type="file" id="profilePicture" accept="image/*" onChange={handleProfilePictureChange} className={`${inputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`} />
                             {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
                             <div className="mt-2 flex items-center space-x-2">
-                                {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-20 w-20 object-cover"/>}
-                                {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-20 w-20 object-cover"/>}
+                                {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
+                                {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
                                 {profilePicture && (
                                     <button 
                                         type="button" 
@@ -516,9 +554,6 @@ function LivePortfolioEditor() {
                                     </button>
                                 )}
                             </div>
-                            {profilePicture && !profilePicture.startsWith('data:') && !isUploadingProfilePic && (
-                                <p className="text-xs text-emerald-400 mt-1">Profile picture uploaded.</p>
-                            )}
                         </div>
                         <div> 
                             <label htmlFor="linkedinUrl" className={labelClasses}>LinkedIn URL</label>
@@ -558,14 +593,14 @@ function LivePortfolioEditor() {
                                                 className={`skills-list space-y-1 mt-2 ${snapshot.isDraggingOver ? 'bg-slate-700/20 rounded p-1' : ''}`}
                                             >
                                                 {skills.map((skill, index) => (
-                                                    <Draggable key={`skill-${skill}-${index}`} draggableId={`skill-${skill}-${index}`} index={index}>
+                                                    <Draggable key={`skill-${skill}-${index}`} draggableId={`skill-${skill}-${index}`} index={index} isDragDisabled={isMobileView}>
                                                         {(providedDraggable, snapshotDraggable) => (
                                                             <li
                                                                 ref={providedDraggable.innerRef}
                                                                 {...providedDraggable.draggableProps}
                                                                 className={`flex justify-between items-center bg-slate-700 p-2 rounded text-sm text-slate-200 ${snapshotDraggable.isDragging ? 'shadow-lg ring-1 ring-emerald-400' : ''}`}
                                                             >
-                                                                <div {...providedDraggable.dragHandleProps} className="p-1 mr-2 cursor-grab active:cursor-grabbing">
+                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}>
                                                                     <DragHandleIcon className="w-4 h-4 text-slate-500" />
                                                                 </div>
                                                                 <span className="flex-grow">{skill}</span>
@@ -605,7 +640,7 @@ function LivePortfolioEditor() {
                                         className={`projects-section mt-3 space-y-2 ${snapshot.isDraggingOver ? 'bg-slate-700/30 rounded p-1' : ''}`}
                                     >
                                         {projects.map((project, index) => (
-                                            <Draggable key={project.id} draggableId={String(project.id)} index={index}> 
+                                            <Draggable key={project.id} draggableId={String(project.id)} index={index} isDragDisabled={isMobileView}> 
                                                 {(providedDraggable, snapshotDraggable) => (
                                                     <div
                                                         ref={providedDraggable.innerRef}
@@ -614,7 +649,7 @@ function LivePortfolioEditor() {
                                                     >
                                                         <div className="flex justify-between items-center p-3 border-b border-slate-600">
                                                             <div className="flex items-center flex-grow">
-                                                                <div {...providedDraggable.dragHandleProps} className="p-1 mr-2 cursor-grab active:cursor-grabbing">
+                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}>
                                                                     <DragHandleIcon />
                                                                 </div>
                                                                 <h4 
@@ -668,9 +703,6 @@ function LivePortfolioEditor() {
                                                                             </button>
                                                                         )}
                                                                     </div>
-                                                                    {projects[index].thumbnailUrl && !projects[index].thumbnailUrl.startsWith('data:') && !projects[index].isUploadingThumbnail && (
-                                                                        <p className="text-xs text-emerald-400 mt-1">Thumbnail uploaded.</p>
-                                                                    )}
                                                                 </div>
                                                                 <div>
                                                                     <label htmlFor={`project-liveDemoUrl-${project.id}`} className={labelClasses}>Live Demo URL (Optional)</label>
@@ -714,7 +746,7 @@ function LivePortfolioEditor() {
                                             className={`custom-sections-list mt-3 space-y-2 ${snapshot.isDraggingOver ? 'bg-slate-700/20 rounded p-1' : ''}`}
                                         >
                                             {customSections.map((section, sectionIndex) => (
-                                                <Draggable key={section.id} draggableId={String(section.id)} index={sectionIndex}>
+                                                <Draggable key={section.id} draggableId={String(section.id)} index={sectionIndex} isDragDisabled={isMobileView}>
                                                     {(providedDraggable, snapshotDraggable) => (
                                                         <div
                                                             ref={providedDraggable.innerRef}
@@ -722,7 +754,7 @@ function LivePortfolioEditor() {
                                                             className={`custom-section-block-editor bg-slate-750 rounded-lg border border-slate-700 ${snapshotDraggable.isDragging ? 'shadow-xl ring-2 ring-emerald-500' : ''}`}
                                                         >
                                                             <div className="flex justify-between items-center p-3 border-b border-slate-600">
-                                                                <div {...providedDraggable.dragHandleProps} className="p-1 mr-2 cursor-grab active:cursor-grabbing">
+                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}>
                                                                     <DragHandleIcon />
                                                                 </div>
                                                                 <input
@@ -861,6 +893,21 @@ function LivePortfolioEditor() {
                                         ))}
                                     </select>
                                 </div>
+                                {/* --- NEW: Skill Chip Style Override UI --- */}
+                                <div>
+                                    <label htmlFor="skillChipStyleOverride" className={labelClasses}>Skill Chip Background</label>
+                                    <select 
+                                        id="skillChipStyleOverride" 
+                                        value={skillChipStyleOverride} 
+                                        onChange={(e) => setSkillChipStyleOverride(e.target.value)} 
+                                        className={inputClasses}
+                                    >
+                                        <option value="theme">Follow Template Default</option>
+                                        <option value="light">Light Background Chips</option>
+                                        <option value="dark">Dark Background Chips</option>
+                                    </select>
+                                </div>
+                                {/* --- END NEW --- */}
                                 <div>
                                     <label htmlFor="sectionSpacing" className={labelClasses}>
                                         Section Spacing (Preview): <span className="font-normal text-slate-400 text-xs">({sectionSpacing * 0.25}rem / {sectionSpacing * 4}px approx.)</span>
@@ -893,9 +940,11 @@ function LivePortfolioEditor() {
                     {error && <p className="text-red-400 text-sm mt-4 text-center">{error}</p>}
                 </div>
 
-                <div className="preview-area sticky top-[calc(theme(spacing.4)+env(safe-area-inset-top))] max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar bg-slate-900 rounded-xl shadow-2xl"> 
-                     <PortfolioDisplay portfolioData={portfolioDataForPreview} />
-                </div>
+                {!isMobileView && (
+                    <div className="preview-area sticky top-[calc(theme(spacing.4)+env(safe-area-inset-top))] max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar bg-slate-900 rounded-xl shadow-2xl"> 
+                         <PortfolioDisplay portfolioData={portfolioDataForPreview} />
+                    </div>
+                )}
             </div>
         </DragDropContext>
     );

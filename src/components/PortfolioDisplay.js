@@ -26,6 +26,7 @@ const GitHubIcon = ({ fill = "#FFFFFF" }) => (
 const SkillDisplay = ({ skillName, fallbackTextColor, displayStyle }) => { 
   const normalizedSkillName = skillName && typeof skillName === 'string' ? skillName.toLowerCase().trim() : '';
   let iconComponent;
+  // Ensure icons can accept a fill/color prop for better theme integration
   switch (normalizedSkillName) {
     case 'react': case 'react.js': iconComponent = <ReactIcon fill={fallbackTextColor} />; break;
     case 'javascript': case 'js': iconComponent = <JavaScriptIcon fill={fallbackTextColor} />; break;
@@ -50,6 +51,7 @@ const SkillDisplay = ({ skillName, fallbackTextColor, displayStyle }) => {
     );
   }
   
+  // Default: Icon + Text Below
   return (
     <div className="flex flex-col items-center text-center w-full"> 
       {iconComponent} 
@@ -60,12 +62,15 @@ const SkillDisplay = ({ skillName, fallbackTextColor, displayStyle }) => {
   );
 };
 
+// These are used by LiveBlankPortfolioEditor, but PortfolioDisplay needs them if it's to resolve theme colors itself.
+// For now, we assume resolved colors are passed in portfolioData for simplicity in PortfolioDisplay.
 const predefinedBackgroundThemes = [ 
-  { id: 'blank-default', name: 'Default (Dark)', style: { backgroundColor: '#374151' }, headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#34D399' },
-  { id: 'light-gentle', name: 'Light Gentle', style: { backgroundColor: '#F3F4F6' }, headingColor: '#1F2937', bodyTextColor: '#374151', accentColor: '#3B82F6' },
+  { id: 'blank-default', name: 'Default (Dark)', style: { backgroundColor: '#374151' }, headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#34D399', skillIconChipBackgroundColor: '#4A5568', skillIconChipTextColor: '#F7FAFC' },
+  { id: 'light-gentle', name: 'Light Gentle', style: { backgroundColor: '#F3F4F6' }, headingColor: '#1F2937', bodyTextColor: '#374151', accentColor: '#3B82F6', skillIconChipBackgroundColor: '#E5E7EB', skillIconChipTextColor: '#1F2937'},
   {id: 'ocean-breeze', name: 'Ocean Breeze', style: { backgroundImage: 'linear-gradient(to top right, #00c6ff, #0072ff)' }, headingColor: '#FFFFFF', bodyTextColor: '#E0F2FE', accentColor: '#FDE047' },
   { id: 'sunset-glow', name: 'Sunset Glow', style: { backgroundImage: 'linear-gradient(to top right, #ff7e5f, #feb47b)' }, headingColor: '#FFFFFF', bodyTextColor: '#FFF7ED', accentColor: '#8B5CF6' },
   { id: 'deep-space', name: 'Deep Space', style: { backgroundImage: 'linear-gradient(to bottom, #232526, #414345)' }, headingColor: '#E5E7EB', bodyTextColor: '#D1D5DB', accentColor: '#A78BFA' },
+  // ... other themes
 ];
 const templateBackgroundImages = { 
     'style-1': '/images/template-1-preview.jpg', 
@@ -88,29 +93,38 @@ function PortfolioDisplay({ portfolioData }) {
   const {
     name, profilePicture, linkedinUrl, githubUrl, aboutMe,
     projects = [], skills = [],   
-    customSections = [], // Destructure customSections, defaulting to an empty array
+    customSections = [],
     fontFamily = 'Arial, sans-serif', 
-    headingColor = '#E5E7EB',         
-    bodyTextColor = '#D1D5DB',       
-    accentColor = '#34D399',         
-    templateId, backgroundType, selectedBackgroundTheme, customBackgroundImageUrl,
+    // These are the primary colors for the portfolio, determined by the editor
+    headingColor, 
+    bodyTextColor,       
+    accentColor,         
+    templateId, 
+    // For blank templates, these determine the background
+    backgroundType, 
+    selectedBackgroundTheme, 
+    customBackgroundImageUrl,
+    // Layout and display style options
     headerLayout = 'image-top-center', 
     skillDisplayStyle = 'icon-text-chip', 
     sectionSpacing = 4, 
-    skillIconChipBackgroundColor, 
-    skillIconChipTextColor 
+    // --- MODIFIED: Ensure these are destructured and used ---
+    skillIconChipBackgroundColor, // This should be the *resolved* color from the editor
+    skillIconChipTextColor,       // This should be the *resolved* color from the editor
   } = portfolioData;
 
   const sectionMarginClass = getMarginBottomClass(sectionSpacing);
-
-  let currentBlankTheme = predefinedBackgroundThemes.find(t => t.id === selectedBackgroundTheme) || predefinedBackgroundThemes[0];
   
-  const finalHeadingColor = (templateId === 'blank' && backgroundType === 'theme' && currentBlankTheme.headingColor) || headingColor;
-  const finalBodyTextColor = (templateId === 'blank' && backgroundType === 'theme' && currentBlankTheme.bodyTextColor) || bodyTextColor;
-  const finalAccentColor = (templateId === 'blank' && backgroundType === 'theme' && currentBlankTheme.accentColor) || accentColor;
+  // Resolve final colors based on what's passed.
+  // The editor should have already resolved these based on theme/override.
+  const finalHeadingColor = headingColor || '#E5E7EB'; // Fallback
+  const finalBodyTextColor = bodyTextColor || '#D1D5DB';   // Fallback
+  const finalAccentColor = accentColor || '#34D399';     // Fallback
 
-  const finalSkillChipBg = skillIconChipBackgroundColor || (templateId === 'blank' && currentBlankTheme.skillIconChipBackgroundColor) || 'rgba(71, 85, 105, 0.5)';
-  const finalSkillChipText = skillIconChipTextColor || (templateId === 'blank' && currentBlankTheme.skillIconChipTextColor) || finalBodyTextColor;
+  // --- MODIFIED: Use the directly passed skill chip colors ---
+  // If these are not passed, provide a sensible default fallback.
+  const finalSkillChipBg = skillIconChipBackgroundColor || (finalBodyTextColor === '#D1D5DB' ? '#4A5568' : '#E5E7EB'); // Default based on body text for contrast
+  const finalSkillChipText = skillIconChipTextColor || (finalBodyTextColor === '#D1D5DB' ? '#F7FAFC' : '#1F2937'); // Default based on body text for contrast
 
 
   let livePreviewBackgroundStyle = {};
@@ -119,9 +133,10 @@ function PortfolioDisplay({ portfolioData }) {
     livePreviewBackgroundStyle = templateBgImage 
       ? { backgroundImage: `url(${process.env.PUBLIC_URL}${templateBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
       : { backgroundColor: '#111827' }; 
-  } else if (templateId === 'blank') {
+  } else if (templateId === 'blank') { // Only for blank templates
     if (backgroundType === 'theme') {
-        livePreviewBackgroundStyle = currentBlankTheme.style || predefinedBackgroundThemes[0].style;
+        const currentTheme = predefinedBackgroundThemes.find(t => t.id === selectedBackgroundTheme) || predefinedBackgroundThemes[0];
+        livePreviewBackgroundStyle = currentTheme.style;
     } else if (backgroundType === 'customImage' && customBackgroundImageUrl) {
         livePreviewBackgroundStyle = { backgroundImage: `url(${customBackgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' };
     } else {
@@ -180,12 +195,11 @@ function PortfolioDisplay({ portfolioData }) {
       {aboutMe && (
         <div className={`portfolio-about ${sectionMarginClass}`}>
           <h2 className="text-2xl font-semibold mb-3" style={{color: finalHeadingColor}}>About Me</h2>
-          <p 
-            className="text-base leading-relaxed whitespace-pre-line" 
+          <div 
+            className="text-base leading-relaxed rich-text-content" 
             style={{color: finalBodyTextColor }}
-          >
-            {aboutMe}
-          </p>
+            dangerouslySetInnerHTML={{ __html: aboutMe }} 
+          />
         </div>
       )}
 
@@ -204,6 +218,7 @@ function PortfolioDisplay({ portfolioData }) {
                 <li 
                   key={index} 
                   className="flex items-center justify-center p-2.5 rounded-lg shadow-md transition-all duration-150 hover:opacity-85"
+                  // --- MODIFIED: Use the resolved finalSkillChipBg and finalSkillChipText ---
                   style={{ backgroundColor: finalSkillChipBg }}
                   title={skill} 
                 >
@@ -215,32 +230,28 @@ function PortfolioDisplay({ portfolioData }) {
         </div>
       )}
       
-      {/* --- MODIFIED: Rendering Custom Sections with Nested Items --- */}
       {customSections && customSections.length > 0 && customSections.map((section, sectionIndex) => (
-        // Each custom section block
         <div key={section.id || `custom-section-${sectionIndex}`} className={`portfolio-custom-section-block ${sectionMarginClass}`}>
             {section.sectionTitle && ( 
-                <h2 className="text-2xl font-semibold mb-4" style={{color: finalHeadingColor}}> {/* Increased bottom margin for main title */}
+                <h2 className="text-2xl font-semibold mb-4" style={{color: finalHeadingColor}}>
                     {section.sectionTitle}
                 </h2>
             )}
-            {/* Render items within this section */}
             {section.items && section.items.length > 0 && (
-                <div className="space-y-4"> {/* Spacing between items in a section */}
+                <div className="space-y-4"> 
                     {section.items.map((item, itemIndex) => (
-                        <div key={item.id || `custom-item-${sectionIndex}-${itemIndex}`} className="custom-section-item ml-2 pl-4 border-l-2 border-slate-600"> {/* Indent and style individual items */}
+                        <div key={item.id || `custom-item-${sectionIndex}-${itemIndex}`} className="custom-section-item ml-2 pl-4 border-l-2 border-slate-600"> 
                             {item.itemTitle && (
-                                <h3 className="text-lg font-semibold mb-1" style={{color: finalHeadingColor}}> {/* Sub-heading for item title */}
+                                <h3 className="text-lg font-semibold mb-1" style={{color: finalHeadingColor}}> 
                                     {item.itemTitle}
                                 </h3>
                             )}
                             {item.itemDetails && (
-                                <p 
-                                    className="text-base leading-relaxed whitespace-pre-line" // Use pre-line for plain text details
+                                <div 
+                                    className="text-base leading-relaxed rich-text-content" 
                                     style={{color: finalBodyTextColor }}
-                                >
-                                    {item.itemDetails}
-                                </p>
+                                    dangerouslySetInnerHTML={{ __html: item.itemDetails }} // Assuming itemDetails can be HTML
+                                />
                             )}
                         </div>
                     ))}
@@ -248,7 +259,6 @@ function PortfolioDisplay({ portfolioData }) {
             )}
         </div>
       ))}
-      {/* --- END MODIFIED: Rendering Custom Sections --- */}
 
       {projects && projects.some(p => p.title || p.description || p.thumbnailUrl || p.liveDemoUrl || p.sourceCodeUrl || p.videoUrl) && (
         <div className={`portfolio-projects ${sectionMarginClass}`}> 
@@ -268,12 +278,11 @@ function PortfolioDisplay({ portfolioData }) {
               {project.title && <h3 className="text-xl font-bold mb-1" style={{color: finalHeadingColor}}>{project.title}</h3>}
               
               {project.description && (
-                <p 
-                    className="text-sm whitespace-pre-line mb-3" 
-                    style={{color: finalBodyTextColor }}
-                >
-                    {project.description}
-                </p>
+                <div 
+                  className="text-sm mb-3 rich-text-content" 
+                  style={{color: finalBodyTextColor }}
+                  dangerouslySetInnerHTML={{ __html: project.description }} 
+                />
               )}
               
               {project.videoUrl && (
