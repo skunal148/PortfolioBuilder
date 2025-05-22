@@ -189,7 +189,7 @@ function PortfolioDisplay({ portfolioData }) {
     finalAccentColor = dataAccentColor || CODER_MIN_DEFAULTS.accentColor;
     finalSecondaryAccentColor = dataSecondaryAccentColor || CODER_MIN_DEFAULTS.secondaryAccentColor;
     livePreviewBackgroundStyle = { backgroundColor: dataPortfolioBackgroundColor || CODER_MIN_DEFAULTS.backgroundColor };
-    portfolioContainerClasses += " p-6 md:p-10 lg:p-16 font-['Inter',_sans-serif] max-w-4xl";
+    portfolioContainerClasses += " p-6 md:p-10 lg:p-16 font-['Inter',_sans-serif] max-w-full";
     currentFontFamily = dataFontFamily || CODER_MIN_DEFAULTS.fontFamily;
     currentHeaderLayout = dataHeaderLayout || CODER_MIN_DEFAULTS.headerLayout;
     currentSkillDisplayStyle = dataSkillDisplayStyle || CODER_MIN_DEFAULTS.skillDisplayStyle;
@@ -219,7 +219,7 @@ function PortfolioDisplay({ portfolioData }) {
         finalSecondaryAccentColor = dataSecondaryAccentColor || currentTheme.secondaryAccentColor;
         finalSkillChipBg = dataSkillChipBg || currentTheme.skillIconChipBackgroundColor;
         finalSkillChipText = dataSkillChipText || currentTheme.skillIconChipTextColor;
-        portfolioContainerClasses += " p-0 font-['Playfair_Display',_serif] max-w-4xl"; // This was likely meant for specific themes, adjusting default Blank padding later
+        portfolioContainerClasses += " p-0 font-['Playfair_Display',_serif] max-w-full"; // This was likely meant for specific themes, adjusting default Blank padding later
     } else if (backgroundType === 'customImage' && customBackgroundImageUrl) {
         livePreviewBackgroundStyle = { backgroundImage: `url(${customBackgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' };
         finalHeadingColor = dataHeadingColor || '#FFFFFF'; 
@@ -461,7 +461,7 @@ function PortfolioDisplay({ portfolioData }) {
                             />
                         </div>
                     )}
-                    <div className="p-4 md:p-6 flex flex-col">
+                    <div className="p-4 md:p-6 flex flex-col flex-grow">
                         {/* THIS IS THE MODIFIED LINE for project title */}
                         {project.title && <h3 className="text-xl md:text-2xl font-bold mb-2" style={{color: finalHeadingColor}}>{project.title}</h3>}
 
