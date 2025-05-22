@@ -1,3 +1,4 @@
+// skunal148/portfoliobuilder/PortfolioBuilder-ad74f8854a7d0e220f440f62c535b153baf3850c/src/components/TemplateSelection.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from './firebase';
@@ -8,20 +9,20 @@ const templates = [
   {
     id: 'blank',
     name: 'Blank Canvas',
-    previewImage: '/images/template-blank-preview.png',
+    previewImage: '/images/template-blank-preview.png', // Ensure this image exists or use a placeholder
     description: 'Start from scratch with a clean slate. Full control over your content, styles, and layout, including custom sections.'
   },
   {
-    id: 'style-coder-min', // This is "The Minimalist Coder"
+    id: 'style-coder-min',
     name: 'The Minimalist Coder',
-    previewImage: 'https://placehold.co/600x400/1F2937/E5E7EB?text=Minimalist+Coder', // Replace with your actual preview
-    description: 'A clean, technical, and focused template with a fixed layout. Ideal for developers. Custom sections are available.' // Custom sections are available as per user's last request for this editor
+    previewImage: '/images/template-coder-preview.png', // Replace with your actual preview
+    description: 'A clean, technical, and focused template with a fixed layout. Ideal for developers. Custom sections are available.'
   },
-  { // NEW TEMPLATE
-    id: 'style-visual-heavy',
+  {
+    id: 'style-visual-heavy', // NEW TEMPLATE
     name: 'The Visual Storyteller',
     description: 'Image-centric, perfect for designers, photographers, and artists. Focus on high-quality visuals and creative project displays. Custom sections available.',
-    previewImage: 'https://placehold.co/600x400/E2E8F0/4A5568?text=Visual+Storyteller', // Placeholder image - replace
+    previewImage: '/images/template-visual-preview.png', // Replace with your actual preview for this
   },
 ];
 
@@ -49,17 +50,13 @@ function TemplateSelection() {
 
   const handleTemplateSelect = (templateId) => {
     if (templateId === 'blank') {
-      console.log('[TemplateSelection] Navigating to create-blank-portfolio');
       navigate('/create-blank-portfolio');
     } else if (templateId === 'style-coder-min') {
-      console.log('[TemplateSelection] Navigating to create-coder-portfolio with templateId:', templateId);
-      navigate(`/create-coder-portfolio/${templateId}`); // New route for coder
+      navigate(`/create-coder-portfolio/${templateId}`);
     } else if (templateId === 'style-visual-heavy') {
-      console.log('[TemplateSelection] Navigating to create-visual-portfolio with templateId:', templateId);
-      navigate(`/create-visual-portfolio/${templateId}`); // New route for visual
+      navigate(`/create-visual-portfolio/${templateId}`);
     } else {
-      // Fallback for any other styled templates if logic was different
-      console.log('[TemplateSelection] Navigating to generic create-styled-portfolio with templateId:', templateId);
+      // Fallback for any other styled templates
       navigate(`/create-styled-portfolio/${templateId}`);
     }
   };
@@ -67,6 +64,25 @@ function TemplateSelection() {
   const handleVisualSelect = (templateId) => {
     setSelectedTemplateVisual(templateId);
   };
+
+  const handleEditPortfolio = (portfolio) => {
+    if (!portfolio || !portfolio.id) {
+      console.error("Invalid portfolio data for editing", portfolio);
+      return;
+    }
+    
+    if (portfolio.templateId === 'blank') {
+      navigate(`/edit-blank/${portfolio.id}`);
+    } else if (portfolio.templateId === 'style-coder-min') {
+      navigate(`/edit-coder-portfolio/${portfolio.id}`);
+    } else if (portfolio.templateId === 'style-visual-heavy') {
+      navigate(`/edit-visual-portfolio/${portfolio.id}`);
+    } else {
+      // Fallback for any other styled templates or older ones
+      navigate(`/edit-styled/${portfolio.id}`); 
+    }
+  };
+
 
   if (loading && !auth.currentUser) {
       return <div className="flex justify-center items-center min-h-screen bg-slate-900 text-slate-100 text-xl">Loading...</div>;
@@ -81,7 +97,7 @@ function TemplateSelection() {
         <p className="text-lg text-slate-600 dark:text-slate-300 mb-12 text-center max-w-2xl mx-auto">
           Select a template that best fits your style. "Blank Canvas" offers full customization. Styled templates provide a head start with specific aesthetics.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Adjusted for potentially 3 items */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {templates.map(template => (
             <div
               key={template.id}
@@ -107,7 +123,7 @@ function TemplateSelection() {
                   <h3 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-2 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
                     {template.name}
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 min-h-[6rem]"> {/* Increased min-height for description */}
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 min-h-[6rem]">
                     {template.description}
                   </p>
                 </div>
@@ -129,7 +145,7 @@ function TemplateSelection() {
           ))}
         </div>
 
-        {userPortfolios.length > 0 && !loading && (
+{/*         {userPortfolios.length > 0 && !loading && (
           <div className="mt-16">
             <h2 className="text-3xl font-semibold text-center text-slate-800 dark:text-slate-200 mb-8">
               Or continue editing one of your existing portfolios:
@@ -143,18 +159,7 @@ function TemplateSelection() {
                     Last updated: {portfolio.lastUpdated ? new Date(portfolio.lastUpdated.seconds * 1000).toLocaleDateString() : 'N/A'}
                   </p>
                   <button
-                    onClick={() => {
-                      if (portfolio.templateId === 'blank') {
-                        navigate(`/edit-blank/${portfolio.id}`);
-                      } else if (portfolio.templateId === 'style-coder-min') {
-                        navigate(`/edit-coder-portfolio/${portfolio.id}`); // Route for editing coder template
-                      } else if (portfolio.templateId === 'style-visual-heavy') {
-                        navigate(`/edit-visual-portfolio/${portfolio.id}`); // Route for editing visual template
-                      } else {
-                        // Fallback for older styled portfolios if any, or a generic styled editor route
-                        navigate(`/edit-styled/${portfolio.id}`); 
-                      }
-                    }}
+                    onClick={() => handleEditPortfolio(portfolio)}
                     className="w-full bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-150 ease-in-out"
                   >
                     Edit
@@ -163,7 +168,7 @@ function TemplateSelection() {
               ))}
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

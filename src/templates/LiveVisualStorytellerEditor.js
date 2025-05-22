@@ -1,3 +1,4 @@
+// skunal148/portfoliobuilder/PortfolioBuilder-ad74f8854a7d0e220f440f62c535b153baf3850c/src/templates/LiveVisualStorytellerEditor.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { storage, db, auth } from '../components/firebase'; // Adjusted path
@@ -47,9 +48,10 @@ const VISUAL_STORYTELLER_DEFAULTS = {
     backgroundColor: '#ecf0f1', // Very light gray / clouds
     skillIconChipBackgroundColor: '#ffffff', // White chips
     skillIconChipTextColor: '#2c3e50',     // Dark text on chips
+    tagline: 'Visual Creator | Designer | Photographer' // Default tagline
 };
 
-const fontOptions = [ // Could be tailored for visual templates
+const fontOptions = [
     { name: 'Playfair Display', value: "'Playfair Display', serif" },
     { name: 'Merriweather', value: "'Merriweather', serif" },
     { name: 'Montserrat', value: "'Montserrat', sans-serif" },
@@ -58,14 +60,14 @@ const fontOptions = [ // Could be tailored for visual templates
     { name: 'System Default', value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' },
 ];
 
-const headerLayoutOptions = [ // Added 'hero-banner'
+const headerLayoutOptions = [
     { id: 'hero-banner', name: 'Hero Banner (Image Background)'},
     { id: 'image-top-center', name: 'Image Top, Text Centered' },
     { id: 'image-left-text-right', name: 'Image Left, Text Right' },
     { id: 'text-only-center', name: 'Text Only, Centered' },
 ];
 
-const skillDisplayOptions = [ // Icon-focused options might be preferred
+const skillDisplayOptions = [
     { id: 'icon-only-chip', name: 'Icon Only (Chip)' },
     { id: 'icon-text-chip', name: 'Icon & Text (Chip)' },
     { id: 'text-only-list', name: 'Text Only (List)' },
@@ -84,6 +86,9 @@ const quillModules = {
     [{ 'header': [1, 2, 3, false] }],
     ['bold', 'italic', 'underline', 'strike'],
     [{'list': 'ordered'}, {'list': 'bullet'}],
+    [{ 'color': [] }, { 'background': [] }], // Added color and background pickers
+    [{ 'font': [] }], // Added font picker
+    [{ 'align': [] }], // Added alignment
     ['link'],
     ['clean']
   ],
@@ -92,7 +97,10 @@ const quillFormats = [
   'header',
   'bold', 'italic', 'underline', 'strike',
   'list', 'bullet',
-  'link'
+  'link',
+  'color', 'background',    // Added color and background
+  'font',      
+  'align'          
 ];
 // --- END Quill Configuration ---
 
@@ -110,8 +118,9 @@ function LiveVisualStorytellerEditor() {
 
     // Content States
     const [name, setName] = useState('');
-    const [profilePicture, setProfilePicture] = useState('');
+    const [profilePicture, setProfilePicture] = useState(''); // Used if headerLayout is not hero-banner
     const [profilePictureFile, setProfilePictureFile] = useState(null);
+    const [tagline, setTagline] = useState(VISUAL_STORYTELLER_DEFAULTS.tagline); // New state for tagline
     const [linkedinUrl, setLinkedinUrl] = useState('');
     const [githubUrl, setGithubUrl] = useState('');
     const [aboutMe, setAboutMe] = useState('');
@@ -129,11 +138,12 @@ function LiveVisualStorytellerEditor() {
     const [secondaryAccentColor, setSecondaryAccentColor] = useState(VISUAL_STORYTELLER_DEFAULTS.secondaryAccentColor);
     const [headerLayout, setHeaderLayout] = useState(VISUAL_STORYTELLER_DEFAULTS.headerLayout);
     const [skillDisplayStyle, setSkillDisplayStyle] = useState(VISUAL_STORYTELLER_DEFAULTS.skillDisplayStyle);
-    const [sectionSpacing, setSectionSpacing] = useState(4);
-    const [skillChipStyleOverride, setSkillChipStyleOverride] = useState('theme');
+    const [sectionSpacing, setSectionSpacing] = useState(4); // Default, can be loaded
+    const [skillChipStyleOverride, setSkillChipStyleOverride] = useState('theme'); // 'theme', 'light', 'dark'
     const [portfolioBackgroundColor, setPortfolioBackgroundColor] = useState(VISUAL_STORYTELLER_DEFAULTS.backgroundColor);
-    const [heroImageUrl, setHeroImageUrl] = useState(''); // For hero banner layout
+    const [heroImageUrl, setHeroImageUrl] = useState(''); 
     const [heroImageFile, setHeroImageFile] = useState(null);
+    
 
     // Technical States
     const [activeTemplateIdForPreview, setActiveTemplateIdForPreview] = useState(templateIdFromUrl || THIS_TEMPLATE_ID);
@@ -142,7 +152,7 @@ function LiveVisualStorytellerEditor() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isMobileView, setIsMobileView] = useState(window.innerWidth < 1024);
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // Increased for potentially larger hero/project images
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for hero/project images
 
     
     useEffect(() => {
@@ -155,9 +165,9 @@ function LiveVisualStorytellerEditor() {
     const loadPortfolioData = useCallback(async () => {
         setLoading(true);
         setError('');
-        setActiveTemplateIdForPreview(THIS_TEMPLATE_ID); // This editor is only for style-visual-heavy
+        setActiveTemplateIdForPreview(THIS_TEMPLATE_ID);
 
-        // Apply defaults first
+        // Apply Visual Storyteller defaults first
         setFontFamily(VISUAL_STORYTELLER_DEFAULTS.fontFamily);
         setHeadingColor(VISUAL_STORYTELLER_DEFAULTS.headingColor);
         setBodyTextColor(VISUAL_STORYTELLER_DEFAULTS.bodyTextColor);
@@ -166,16 +176,20 @@ function LiveVisualStorytellerEditor() {
         setHeaderLayout(VISUAL_STORYTELLER_DEFAULTS.headerLayout);
         setSkillDisplayStyle(VISUAL_STORYTELLER_DEFAULTS.skillDisplayStyle);
         setPortfolioBackgroundColor(VISUAL_STORYTELLER_DEFAULTS.backgroundColor);
+        setTagline(VISUAL_STORYTELLER_DEFAULTS.tagline);
+        setSkillChipStyleOverride('theme');
 
-        if (id) { // Editing existing portfolio
+
+        if (id) { 
             try {
                 const portfolioRef = doc(db, 'portfolios', id);
                 const docSnap = await getDoc(portfolioRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setName(data.name || '');
-                    setProfilePicture(data.profilePicture || '');
-                    setHeroImageUrl(data.heroImageUrl || ''); // Load hero image
+                    setProfilePicture(data.profilePicture || ''); // For non-hero headers
+                    setTagline(data.tagline || VISUAL_STORYTELLER_DEFAULTS.tagline);
+                    setHeroImageUrl(data.heroImageUrl || ''); 
                     setLinkedinUrl(data.linkedinUrl || '');
                     setGithubUrl(data.githubUrl || '');
                     setAboutMe(data.aboutMe || '');
@@ -187,7 +201,7 @@ function LiveVisualStorytellerEditor() {
                     setSkills(Array.isArray(data.skills) ? data.skills.map(s => ({...s, id: s.id || generateStableId('skill') })) : []);
                     setCustomSections(Array.isArray(data.customSections) ? data.customSections.map(cs => ({ ...createNewCustomSection(), ...cs, id: String(cs.id || generateStableId('customSection')), items: Array.isArray(cs.items) ? cs.items.map(item => ({ ...createNewCustomSectionItem(), ...item, id: String(item.id || generateStableId('customItem')), isCollapsed: item.isCollapsed !== undefined ? item.isCollapsed : false })) : [] })) : []);
 
-                    // Load customizable styles, overriding defaults if they exist
+                    // Load styles, ensuring Visual Storyteller defaults are primary
                     setFontFamily(data.fontFamily || VISUAL_STORYTELLER_DEFAULTS.fontFamily);
                     setHeadingColor(data.headingColor || VISUAL_STORYTELLER_DEFAULTS.headingColor);
                     setBodyTextColor(data.bodyTextColor || VISUAL_STORYTELLER_DEFAULTS.bodyTextColor);
@@ -205,16 +219,15 @@ function LiveVisualStorytellerEditor() {
                 console.error("Error loading portfolio data:", err);
                 setError('Failed to load portfolio data. Please try again.');
             } finally { setLoading(false); }
-        } else { // New portfolio for style-visual-heavy
+        } else { 
             setProjects([createNewProject()]);
             setLoading(false);
         }
-    }, [id, templateIdFromUrl]); // templateIdFromUrl ensures re-fetch if user somehow changes it in URL for new
+    }, [id]); 
 
     useEffect(() => { loadPortfolioData(); }, [loadPortfolioData]);
 
     // --- Content Handler Functions ---
-    // (Skills, Projects, Custom Sections handlers are similar to LiveBlankPortfolioEditor)
     const handleAddProject = () => setProjects(prev => [...prev, createNewProject()]);
     const handleProjectChange = (index, field, value) => setProjects(prev => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
     const handleRemoveProject = (projectId) => setProjects(prev => prev.filter(p => p.id !== projectId));
@@ -244,93 +257,92 @@ function LiveVisualStorytellerEditor() {
     
     // --- File Upload Handlers ---
     const handleImageUpload = async (file, pathPrefix, onProgressUpdate) => {
-            if (!file) return '';
-            if (!auth.currentUser) {
-                setError("Authentication error. Cannot upload image.");
-                return '';
-            }
-            const fileName = `${pathPrefix}/${auth.currentUser.uid}/${Date.now()}_${file.name}`;
-            const storageRefFirebase = ref(storage, fileName);
-            const uploadTask = uploadBytesResumable(storageRefFirebase, file);
-    
-            return new Promise((resolve, reject) => {
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        if (onProgressUpdate) onProgressUpdate(progress);
-                    },
-                    (error) => {
-                        console.error('File upload error:', error);
-                        setError(`Failed to upload. ${error.code}`);
-                        if (onProgressUpdate) onProgressUpdate(0);
-                        reject(error);
-                    },
-                    async () => {
-                        try {
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            resolve(downloadURL);
-                        } catch (urlError) {
-                            console.error('Error getting download URL:', urlError);
-                            setError(`Failed to get URL.`);
-                            reject(urlError);
-                        }
+        if (!file) return '';
+        if (!auth.currentUser) {
+            setError("Authentication error. Cannot upload image.");
+            return '';
+        }
+        const fileName = `${pathPrefix}/${auth.currentUser.uid}/${Date.now()}_${file.name}`;
+        const storageRefFirebase = ref(storage, fileName);
+        const uploadTask = uploadBytesResumable(storageRefFirebase, file);
+
+        return new Promise((resolve, reject) => {
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    if (onProgressUpdate) onProgressUpdate(progress);
+                },
+                (error) => {
+                    console.error('File upload error:', error);
+                    setError(`Failed to upload. ${error.code}`);
+                    if (onProgressUpdate) onProgressUpdate(0);
+                    reject(error);
+                },
+                async () => {
+                    try {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        resolve(downloadURL);
+                    } catch (urlError) {
+                        console.error('Error getting download URL:', urlError);
+                        setError(`Failed to get URL.`);
+                        reject(urlError);
                     }
-                );
-            });
+                }
+            );
+        });
+    };
+    const handleProfilePictureChange = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (file.size > MAX_FILE_SIZE) {
+            alert(`Profile picture is too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
+            return;
+        }
+        setProfilePictureFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => setProfilePicture(reader.result);
+        reader.readAsDataURL(file);
+    };
+    const handleRemoveProfilePicture = () => {
+        setProfilePicture('');
+        setProfilePictureFile(null);
+    };
+    const handleProjectThumbnailChange = async (projectIndex, event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (file.size > MAX_FILE_SIZE) {
+            alert(`Project thumbnail is too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
+            return;
+        }
+        const updatedProjects = [...projects];
+        updatedProjects[projectIndex].thumbnailFile = file;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            updatedProjects[projectIndex].thumbnailUrl = reader.result;
+            setProjects(updatedProjects);
         };
-        const handleProfilePictureChange = async (event) => {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            if (file.size > MAX_FILE_SIZE) {
-                alert(`Profile picture is too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
-                return;
-            }
-            setProfilePictureFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => setProfilePicture(reader.result);
-            reader.readAsDataURL(file);
-        };
-        const handleRemoveProfilePicture = () => {
-            setProfilePicture('');
-            setProfilePictureFile(null);
-        };
-        const handleProjectThumbnailChange = async (projectIndex, event) => {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            if (file.size > MAX_FILE_SIZE) {
-                alert(`Project thumbnail is too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
-                return;
-            }
-            const updatedProjects = [...projects];
-            updatedProjects[projectIndex].thumbnailFile = file;
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                updatedProjects[projectIndex].thumbnailUrl = reader.result;
-                setProjects(updatedProjects);
-            };
-            reader.readAsDataURL(file);
-        };
-         const handleRemoveProjectThumbnail = (projectIndex) => {
-            setProjects(prev => prev.map((p, idx) => idx === projectIndex ? { ...p, thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0 } : p));
-        };
+        reader.readAsDataURL(file);
+    };
+    const handleRemoveProjectThumbnail = (projectIndex) => {
+        setProjects(prev => prev.map((p, idx) => idx === projectIndex ? { ...p, thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0 } : p));
+    };
 
     const handleHeroImageChange = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        if (file.size > MAX_FILE_SIZE) { // Use a general MAX_FILE_SIZE or a specific one for hero
+        if (file.size > MAX_FILE_SIZE) { 
             alert(`Hero image is too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
             return;
         }
         setHeroImageFile(file);
         const reader = new FileReader();
-        reader.onloadend = () => setHeroImageUrl(reader.result); // For local preview
+        reader.onloadend = () => setHeroImageUrl(reader.result);
         reader.readAsDataURL(file);
     };
-     const handleRemoveHeroImage = () => {
+    const handleRemoveHeroImage = () => {
         setHeroImageUrl('');
         setHeroImageFile(null);
     };
-
 
     const handlePaletteChange = (paletteName) => {
         const selected = predefinedColorPalettes.find(p => p.name === paletteName);
@@ -341,6 +353,7 @@ function LiveVisualStorytellerEditor() {
             setAccentColor(selected.accentColor);
             setSecondaryAccentColor(selected.secondaryAccentColor);
             setPortfolioBackgroundColor(selected.backgroundColor || VISUAL_STORYTELLER_DEFAULTS.backgroundColor);
+            setSkillChipStyleOverride('theme'); // Reset skill chip style to theme when palette changes
         } else { // Reset to visual storyteller defaults
             setFontFamily(VISUAL_STORYTELLER_DEFAULTS.fontFamily);
             setHeadingColor(VISUAL_STORYTELLER_DEFAULTS.headingColor);
@@ -348,27 +361,39 @@ function LiveVisualStorytellerEditor() {
             setAccentColor(VISUAL_STORYTELLER_DEFAULTS.accentColor);
             setSecondaryAccentColor(VISUAL_STORYTELLER_DEFAULTS.secondaryAccentColor);
             setPortfolioBackgroundColor(VISUAL_STORYTELLER_DEFAULTS.backgroundColor);
+            setSkillChipStyleOverride('theme');
         }
     };
 
-const handleSavePortfolio = async () => {
-        // ... (Full save logic, ensure it uses VISUAL_STORYTELLER_DEFAULTS for fixed styles when template is style-visual-heavy)
-        // ... and saves customSections
+    const handleSavePortfolio = async () => {
         if (!auth.currentUser) { setError("You must be logged in to save your portfolio."); return; }
         setLoading(true); setError('');
         let finalProfilePictureUrl = profilePicture;
+        let finalHeroImageUrl = heroImageUrl;
         let finalProjects = [...projects];
         let uploadErrorOccurred = false;
 
         try {
-            if (profilePictureFile) {
+            // Upload Profile Picture (if not hero banner or if provided)
+            if (profilePictureFile && headerLayout !== 'hero-banner') {
                 setIsUploadingProfilePic(true);
-                finalProfilePictureUrl = await handleImageUpload(profilePictureFile, `profilePictures_${activeTemplateIdForPreview}`, (progress) => {/* Progress */});
+                finalProfilePictureUrl = await handleImageUpload(profilePictureFile, `profilePictures_${THIS_TEMPLATE_ID}`, (progress) => {/* Progress */});
                 setProfilePictureFile(null);
                 setIsUploadingProfilePic(false);
             } else if (!profilePicture) {
                 finalProfilePictureUrl = '';
             }
+
+            // Upload Hero Image (if hero banner layout and file exists)
+            if (heroImageFile && headerLayout === 'hero-banner') {
+                setIsUploadingHeroImage(true);
+                finalHeroImageUrl = await handleImageUpload(heroImageFile, `heroImages_${THIS_TEMPLATE_ID}`, (progress) => { /* Progress */ });
+                setHeroImageFile(null);
+                setIsUploadingHeroImage(false);
+            } else if (!heroImageUrl) {
+                finalHeroImageUrl = '';
+            }
+
 
             for (let i = 0; i < finalProjects.length; i++) {
                 let project = { ...finalProjects[i] };
@@ -379,7 +404,7 @@ const handleSavePortfolio = async () => {
                     try {
                         const newUrl = await handleImageUpload(
                             project.thumbnailFile,
-                            `projectThumbnails_${activeTemplateIdForPreview}/${project.id || Date.now()}`,
+                            `projectThumbnails_${THIS_TEMPLATE_ID}/${project.id || Date.now()}`,
                             (progress) => {
                                 setProjects(prev => prev.map((p, idx) => idx === i ? { ...p, thumbnailUploadProgress: progress } : p));
                             }
@@ -410,7 +435,7 @@ const handleSavePortfolio = async () => {
                 isCollapsed: p.isCollapsed !== undefined ? p.isCollapsed : false,
             }));
 
-            const customSectionsToSave = customSections.map(cs => ({ // Custom sections are saved
+            const customSectionsToSave = customSections.map(cs => ({ 
                 id: String(cs.id), sectionTitle: cs.sectionTitle,
                 items: cs.items.map(item => ({
                     id: String(item.id), itemTitle: item.itemTitle, itemDetails: item.itemDetails,
@@ -420,18 +445,22 @@ const handleSavePortfolio = async () => {
 
             const portfolioData = {
                 userId: auth.currentUser.uid,
-                templateId: activeTemplateIdForPreview,
-                name, profilePicture: finalProfilePictureUrl,
+                templateId: THIS_TEMPLATE_ID,
+                name, 
+                profilePicture: finalProfilePictureUrl, // Save even if hero, for other layouts
+                heroImageUrl: finalHeroImageUrl,       // Specific to hero layout
+                tagline,
                 linkedinUrl, githubUrl, aboutMe,
                 projects: projectsToSave, skills, 
-                customSections: customSectionsToSave, // Save custom sections
-                fontFamily: activeTemplateIdForPreview === 'style-visual-heavy' ? VISUAL_STORYTELLER_DEFAULTS.fontFamily : fontFamily,
-                headingColor: activeTemplateIdForPreview === 'style-visual-heavy' ? VISUAL_STORYTELLER_DEFAULTS.headingColor : headingColor,
-                bodyTextColor: activeTemplateIdForPreview === 'style-visual-heavy' ? VISUAL_STORYTELLER_DEFAULTS.bodyTextColor : bodyTextColor,
-                accentColor: activeTemplateIdForPreview === 'style-visual-heavy' ? VISUAL_STORYTELLER_DEFAULTS.accentColor : accentColor,
-                secondaryAccentColor: activeTemplateIdForPreview === 'style-visual-heavy' ? VISUAL_STORYTELLER_DEFAULTS.secondaryAccentColor : secondaryAccentColor,
-                headerLayout: activeTemplateIdForPreview === 'style-visual-heavy' ? VISUAL_STORYTELLER_DEFAULTS.headerLayout : headerLayout,
-                skillDisplayStyle: activeTemplateIdForPreview === 'style-visual-heavy' ? VISUAL_STORYTELLER_DEFAULTS.skillDisplayStyle : skillDisplayStyle,
+                customSections: customSectionsToSave, 
+                fontFamily: fontFamily, // Save the chosen font
+                headingColor: headingColor,
+                bodyTextColor: bodyTextColor,
+                accentColor: accentColor,
+                secondaryAccentColor: secondaryAccentColor,
+                headerLayout: headerLayout,
+                skillDisplayStyle: skillDisplayStyle,
+                portfolioBackgroundColor: portfolioBackgroundColor, // Save chosen background
                 sectionSpacing,
                 skillChipStyleOverride: skillChipStyleOverride,
                 lastUpdated: serverTimestamp(),
@@ -441,13 +470,13 @@ const handleSavePortfolio = async () => {
                 const portfolioRef = doc(db, 'portfolios', id);
                 await updateDoc(portfolioRef, portfolioData);
                 alert('Portfolio updated successfully!');
-                loadPortfolioData();
+                loadPortfolioData(); // Reload to reflect changes
             } else {
                 const docRef = await addDoc(collection(db, 'portfolios'), {
                     ...portfolioData, createdAt: serverTimestamp(),
                 });
                 alert('Portfolio created successfully!');
-                navigate(`/edit-styled/${docRef.id}`, { replace: true }); 
+                navigate(`/edit-visual-portfolio/${docRef.id}`, { replace: true }); 
             }
 
         } catch (err) {
@@ -456,10 +485,12 @@ const handleSavePortfolio = async () => {
         } finally {
             setLoading(false);
             setIsUploadingProfilePic(false);
+            setIsUploadingHeroImage(false);
             setProjects(prev => prev.map(p => ({...p, isUploadingThumbnail: false, thumbnailUploadProgress: 0})));
         }
     };
-        const onDragEnd = (result) => {
+
+    const onDragEnd = (result) => {
         const { source, destination, type } = result;
         if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) return;
 
@@ -478,6 +509,19 @@ const handleSavePortfolio = async () => {
             const [removed] = reordered.splice(source.index, 1);
             reordered.splice(destination.index, 0, removed);
             setCustomSections(reordered);
+        }  else if (type.startsWith('CUSTOM_SECTION_ITEMS_')) {
+            const sectionId = type.split('_').pop();
+            const sectionIndex = customSections.findIndex(s => s.id === sectionId);
+            if (sectionIndex === -1) return;
+
+            const reorderedItems = Array.from(customSections[sectionIndex].items);
+            const [removed] = reorderedItems.splice(source.index, 1);
+            reorderedItems.splice(destination.index, 0, removed);
+
+            const updatedSections = customSections.map((s, i) =>
+                i === sectionIndex ? { ...s, items: reorderedItems } : s
+            );
+            setCustomSections(updatedSections);
         }
     };
 
@@ -507,19 +551,23 @@ const handleSavePortfolio = async () => {
     const secondaryButtonClasses = "bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-md transition-colors";
     const smallButtonClasses = "text-xs py-1 px-2 rounded-md";
 
-    let saveButtonText = id ? `Update Portfolio (${activeTemplateIdForPreview})` : `Create Portfolio (${activeTemplateIdForPreview})`;
-    // ... save button text logic ...
+    let saveButtonText = id ? `Update Visual Portfolio` : `Create Visual Portfolio`;
+    if (loading) saveButtonText = 'Processing...';
+    else if (isUploadingProfilePic) saveButtonText = 'Uploading Profile Pic...';
+    else if (isUploadingHeroImage) saveButtonText = 'Uploading Hero Image...';
+    else if (projects.some(p => p.isUploadingThumbnail)) saveButtonText = 'Uploading Thumbs...';
+
 
     const portfolioDataForPreview = {
         name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills, 
-        customSections, 
+        customSections, tagline,
         fontFamily, headingColor, bodyTextColor, accentColor, secondaryAccentColor,
-        templateId: activeTemplateIdForPreview, 
+        templateId: THIS_TEMPLATE_ID, 
         headerLayout, skillDisplayStyle, sectionSpacing,
         skillIconChipBackgroundColor: skillChipStyleOverride === 'light' ? '#E5E7EB' : (skillChipStyleOverride === 'dark' ? '#2D3748' : VISUAL_STORYTELLER_DEFAULTS.skillIconChipBackgroundColor),
         skillIconChipTextColor: skillChipStyleOverride === 'light' ? '#2D3748' : (skillChipStyleOverride === 'dark' ? '#E5E7EB' : VISUAL_STORYTELLER_DEFAULTS.skillIconChipTextColor),
-        portfolioBackgroundColor: portfolioBackgroundColor, // Pass this for PortfolioDisplay
-        heroImageUrl: heroImageUrl, // Pass hero image for preview
+        portfolioBackgroundColor: portfolioBackgroundColor,
+        heroImageUrl: heroImageUrl,
     };
     
     const listItemVariants = {
@@ -542,187 +590,232 @@ const handleSavePortfolio = async () => {
                     {/* Basic Info Section */}
                     <div className={`${editorSectionBg} p-4 rounded-lg grid grid-cols-1 gap-y-6`}>
                         <h3 className={editorSectionHeaderClasses.replace('cursor-pointer', '')}>Basic Information</h3>
-                        {/* ... Name, Profile Pic, LinkedIn, GitHub, About Me with Quill ... */}
+                         <div>
+                            <label htmlFor="name-visual" className={editorLabelClasses}>Full Name / Brand Name</label>
+                            <input type="text" id="name-visual" value={name} onChange={(e) => setName(e.target.value)} className={editorInputClasses} placeholder="e.g., Your Name or Studio Name" />
+                        </div>
                         <div>
-                            <label htmlFor="heroImage-visual" className={editorLabelClasses}>Header Hero Image (Optional)</label>
-                            <input type="file" id="heroImage-visual" accept="image/*" onChange={handleHeroImageChange} className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} />
-                            {isUploadingHeroImage && <p className="text-xs text-slate-400 mt-1">Uploading hero image...</p>}
-                            <div className="mt-2 flex items-center space-x-2">
-                                {heroImageUrl && heroImageUrl.startsWith('data:') && !isUploadingHeroImage && <img src={heroImageUrl} alt="Hero Preview" className="rounded max-h-32 object-contain"/>}
-                                {heroImageUrl && !heroImageUrl.startsWith('data:') && !isUploadingHeroImage && <img src={heroImageUrl} alt="Current Hero" className="rounded max-h-32 object-contain"/>}
-                                {heroImageUrl && (
-                                    <button type="button" onClick={handleRemoveHeroImage} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors" aria-label="Remove hero image" >
-                                        <TrashIcon className="w-5 h-5" />
-                                    </button>
-                                )}
+                            <label htmlFor="tagline-visual" className={editorLabelClasses}>Tagline / Short Bio</label>
+                            <input type="text" id="tagline-visual" value={tagline} onChange={(e) => setTagline(e.target.value)} className={editorInputClasses} placeholder={VISUAL_STORYTELLER_DEFAULTS.tagline} />
+                        </div>
+
+                        {/* Conditional Profile Picture Input - Show if not Hero Banner or if explicitly needed */}
+                        {(headerLayout !== 'hero-banner') && (
+                            <div>
+                                <label htmlFor="profilePicture-visual" className={editorLabelClasses}>Profile Picture (for non-hero layouts)</label>
+                                <input type="file" id="profilePicture-visual" accept="image/*" onChange={handleProfilePictureChange} className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} />
+                                {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
+                                {/* Profile Picture Preview and Remove Button */}
+                            </div>
+                        )}
+                        
+                        {/* Hero Image Input - Show if Hero Banner layout */}
+                        {(headerLayout === 'hero-banner') && (
+                            <div>
+                                <label htmlFor="heroImage-visual" className={editorLabelClasses}>Header Hero Image</label>
+                                <input type="file" id="heroImage-visual" accept="image/*" onChange={handleHeroImageChange} className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} />
+                                {isUploadingHeroImage && <p className="text-xs text-slate-400 mt-1">Uploading hero image...</p>}
+                                <div className="mt-2 flex items-center space-x-2">
+                                    {heroImageUrl && heroImageUrl.startsWith('data:') && !isUploadingHeroImage && <img src={heroImageUrl} alt="Hero Preview" className="rounded max-h-32 object-contain"/>}
+                                    {heroImageUrl && !heroImageUrl.startsWith('data:') && !isUploadingHeroImage && <img src={heroImageUrl} alt="Current Hero" className="rounded max-h-32 object-contain"/>}
+                                    {heroImageUrl && (
+                                        <button type="button" onClick={handleRemoveHeroImage} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors" aria-label="Remove hero image" >
+                                            <TrashIcon className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <label htmlFor="linkedinUrl-visual" className={editorLabelClasses}>LinkedIn URL (Optional)</label>
+                            <input type="url" id="linkedinUrl-visual" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} className={editorInputClasses} placeholder="https://linkedin.com/in/yourprofile"/>
+                        </div>
+                        <div>
+                            <label htmlFor="githubUrl-visual" className={editorLabelClasses}>Other Portfolio/Social Link (e.g., Dribbble, Behance, GitHub)</label>
+                            <input type="url" id="githubUrl-visual" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} className={editorInputClasses} placeholder="https://your-other-link.com"/>
+                        </div>
+                        <div>
+                            <label htmlFor="aboutMe-visual" className={editorLabelClasses}>About Me / Artist Statement</label>
+                            <div className={`quill-editor-override ${editorQuillWrapperClasses}`}>
+                                <ReactQuill
+                                    theme="snow"
+                                    value={aboutMe}
+                                    onChange={setAboutMe}
+                                    modules={quillModules}
+                                    formats={quillFormats}
+                                    placeholder="Tell your story, describe your artistic vision, or share your professional background..."
+                                />
                             </div>
                         </div>
                     </div>
 
-                     {/* Skills Section with Disclosure */}
-                                        <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={true}>
-                                            {({ open }) => (
-                                                <>
-                                                    <Disclosure.Button className={editorSectionHeaderClasses}>
-                                                        <span>Skills</span>
-                                                        <ChevronDownIcon className={`w-5 h-5 text-emerald-400 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-                                                    </Disclosure.Button>
-                                                    <Transition show={open} enter="transition duration-100 ease-out" enterFrom="transform scale-95 opacity-0 max-h-0" enterTo="transform scale-100 opacity-100 max-h-screen" leave="transition duration-75 ease-out" leaveFrom="transform scale-100 opacity-100 max-h-screen" leaveTo="transform scale-95 opacity-0 max-h-0" >
-                                                        <Disclosure.Panel className="skills-section mt-3 space-y-3 overflow-hidden">
-                                                            {/* Skills input and list (same as LiveBlankPortfolioEditor, with AnimatePresence) */}
-                                                            <div className="add-skill-input flex items-start space-x-2">
-                                                                <div className="flex-grow">
-                                                                    <label htmlFor="newSkillNameStyled" className={editorLabelClasses}>Skill Name</label>
-                                                                    <input type="text" id="newSkillNameStyled" value={newSkillName} onChange={(e) => setNewSkillName(e.target.value)} onKeyPress={(e) => { if (e.key === 'Enter') handleAddSkill();}} className={`${editorInputClasses} md:w-full`} placeholder="e.g., React"/>
-                                                                </div>
-                                                                <div className="flex-grow-0 w-1/3">
-                                                                    <label htmlFor="newSkillLevelStyled" className={editorLabelClasses}>Proficiency</label>
-                                                                    <select id="newSkillLevelStyled" value={newSkillLevel} onChange={(e) => setNewSkillLevel(e.target.value)} className={`${editorInputClasses} md:w-full`}>
-                                                                        <option value="Beginner">Beginner</option>
-                                                                        <option value="Intermediate">Intermediate</option>
-                                                                        <option value="Advanced">Advanced</option>
-                                                                        <option value="Expert">Expert</option>
-                                                                    </select>
-                                                                </div>
-                                                                <button type="button" onClick={handleAddSkill} className={`${buttonClasses} ${smallButtonClasses} self-end mb-px`}>Add</button>
-                                                            </div>
-                                                            {skills.length > 0 && (
-                                                                <Droppable droppableId="skillsDroppableStyled" type="SKILLS">
-                                                                    {(provided) => (
-                                                                        <ul ref={provided.innerRef} {...provided.droppableProps} className={`skills-list space-y-1 mt-2`}>
-                                                                            <AnimatePresence>
-                                                                                {skills.map((skillObj, index) => (
-                                                                                    <Draggable key={skillObj.id} draggableId={skillObj.id} index={index} isDragDisabled={isMobileView}>
-                                                                                        {(providedDraggable) => (
-                                                                                            <motion.li
-                                                                                                ref={providedDraggable.innerRef}
-                                                                                                {...providedDraggable.draggableProps}
-                                                                                                variants={listItemVariants}
-                                                                                                initial="initial"
-                                                                                                animate="animate"
-                                                                                                exit="exit"
-                                                                                                layout
-                                                                                                className={`flex justify-between items-center ${editorDraggableItemBg} p-2 rounded text-sm ${editorDraggableItemText}`}
-                                                                                            >
-                                                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}> <DragHandleIcon className="w-4 h-4 text-slate-400" /> </div>
-                                                                                                <span className="flex-grow">{skillObj.name} ({skillObj.level})</span>
-                                                                                                <button type="button" onClick={() => handleRemoveSkill(skillObj.id)} className="text-rose-400 hover:text-rose-300 p-1 rounded-full hover:bg-slate-600 transition-colors"> <RemoveIcon className="w-4 h-4" /> </button>
-                                                                                            </motion.li>
-                                                                                        )}
-                                                                                    </Draggable>
-                                                                                ))}
-                                                                            </AnimatePresence>
-                                                                            {provided.placeholder}
-                                                                        </ul>
-                                                                    )}
-                                                                </Droppable>
-                                                            )}
-                                                        </Disclosure.Panel>
-                                                    </Transition>
-                                                </>
+                    {/* Skills Section */}
+                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={true}>
+                        {/* ... (Same as LiveMinimalistCoderEditor's skills section JSX) ... */}
+                          {({ open }) => (
+                                <>
+                                    <Disclosure.Button className={editorSectionHeaderClasses}>
+                                        <span>Skills / Software</span>
+                                        <ChevronDownIcon className={`w-5 h-5 text-emerald-400 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+                                    </Disclosure.Button>
+                                    <Transition show={open} enter="transition duration-100 ease-out" enterFrom="transform scale-95 opacity-0 max-h-0" enterTo="transform scale-100 opacity-100 max-h-screen" leave="transition duration-75 ease-out" leaveFrom="transform scale-100 opacity-100 max-h-screen" leaveTo="transform scale-95 opacity-0 max-h-0" >
+                                        <Disclosure.Panel className="skills-section mt-3 space-y-3 overflow-hidden">
+                                            <div className="add-skill-input flex items-start space-x-2">
+                                                <div className="flex-grow">
+                                                    <label htmlFor="newSkillNameStyled" className={editorLabelClasses}>Skill/Software</label>
+                                                    <input type="text" id="newSkillNameStyled" value={newSkillName} onChange={(e) => setNewSkillName(e.target.value)} onKeyPress={(e) => { if (e.key === 'Enter') handleAddSkill();}} className={`${editorInputClasses} md:w-full`} placeholder="e.g., Photoshop, Figma"/>
+                                                </div>
+                                                <div className="flex-grow-0 w-1/3">
+                                                    <label htmlFor="newSkillLevelStyled" className={editorLabelClasses}>Proficiency</label>
+                                                    <select id="newSkillLevelStyled" value={newSkillLevel} onChange={(e) => setNewSkillLevel(e.target.value)} className={`${editorInputClasses} md:w-full`}>
+                                                        <option value="Beginner">Beginner</option>
+                                                        <option value="Intermediate">Intermediate</option>
+                                                        <option value="Advanced">Advanced</option>
+                                                        <option value="Expert">Expert</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" onClick={handleAddSkill} className={`${buttonClasses} ${smallButtonClasses} self-end mb-px`}>Add</button>
+                                            </div>
+                                            {skills.length > 0 && (
+                                                <Droppable droppableId="skillsDroppableVisual" type="SKILLS">
+                                                    {(provided) => (
+                                                        <ul ref={provided.innerRef} {...provided.droppableProps} className={`skills-list space-y-1 mt-2`}>
+                                                            <AnimatePresence>
+                                                                {skills.map((skillObj, index) => (
+                                                                    <Draggable key={skillObj.id} draggableId={skillObj.id} index={index} isDragDisabled={isMobileView}>
+                                                                        {(providedDraggable) => (
+                                                                            <motion.li
+                                                                                ref={providedDraggable.innerRef}
+                                                                                {...providedDraggable.draggableProps}
+                                                                                variants={listItemVariants}
+                                                                                initial="initial"
+                                                                                animate="animate"
+                                                                                exit="exit"
+                                                                                layout
+                                                                                className={`flex justify-between items-center ${editorDraggableItemBg} p-2 rounded text-sm ${editorDraggableItemText}`}
+                                                                            >
+                                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}> <DragHandleIcon className="w-4 h-4 text-slate-400" /> </div>
+                                                                                <span className="flex-grow">{skillObj.name} ({skillObj.level})</span>
+                                                                                <button type="button" onClick={() => handleRemoveSkill(skillObj.id)} className="text-rose-400 hover:text-rose-300 p-1 rounded-full hover:bg-slate-600 transition-colors"> <RemoveIcon className="w-4 h-4" /> </button>
+                                                                            </motion.li>
+                                                                        )}
+                                                                    </Draggable>
+                                                                ))}
+                                                            </AnimatePresence>
+                                                            {provided.placeholder}
+                                                        </ul>
+                                                    )}
+                                                </Droppable>
                                             )}
-                                        </Disclosure>
+                                        </Disclosure.Panel>
+                                    </Transition>
+                                </>
+                            )}
+                    </Disclosure>
                     
-                                        {/* Projects Section with Disclosure */}
-                                        <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={true}>
-                                             {({ open }) => (
-                                                <>
-                                                    <Disclosure.Button className={editorSectionHeaderClasses}>
-                                                        <span>Projects</span>
-                                                         <ChevronDownIcon className={`w-5 h-5 text-emerald-400 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-                                                    </Disclosure.Button>
-                                                    <Transition show={open} enter="transition duration-100 ease-out" enterFrom="transform scale-95 opacity-0 max-h-0" enterTo="transform scale-100 opacity-100 max-h-screen" leave="transition duration-75 ease-out" leaveFrom="transform scale-100 opacity-100 max-h-screen" leaveTo="transform scale-95 opacity-0 max-h-0" >
-                                                        <Disclosure.Panel className="projects-section mt-3 space-y-2 overflow-hidden">
-                                                            <Droppable droppableId="projectsDroppableStyled" type="PROJECTS">
-                                                                {(provided) => (
-                                                                    <div ref={provided.innerRef} {...provided.droppableProps} className={`space-y-2`}>
-                                                                        <AnimatePresence>
-                                                                            {projects.map((project, index) => (
-                                                                                <Draggable key={project.id} draggableId={String(project.id)} index={index} isDragDisabled={isMobileView}>
-                                                                                    {(providedDraggable) => (
-                                                                                        <motion.div
-                                                                                            ref={providedDraggable.innerRef}
-                                                                                            {...providedDraggable.draggableProps}
-                                                                                            variants={listItemVariants}
-                                                                                            initial="initial"
-                                                                                            animate="animate"
-                                                                                            exit="exit"
-                                                                                            layout
-                                                                                            className={`project-item-editor-wrapper ${editorDraggableItemBg} rounded-md shadow-md`}
-                                                                                        >
-                                                                                            <div className="flex justify-between items-center p-3 border-b border-slate-600">
-                                                                                                <div className="flex items-center flex-grow">
-                                                                                                    <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}> <DragHandleIcon /> </div>
-                                                                                                    <h4 className={`text-md font-semibold ${editorDraggableItemText} flex-grow cursor-pointer`} onClick={() => handleToggleProjectItemCollapse(project.id)}> {project.title || `Project ${index + 1}`} </h4>
-                                                                                                </div>
-                                                                                                <button type="button" onClick={() => handleToggleProjectItemCollapse(project.id)} className="p-1 text-slate-400 hover:text-slate-200 mr-2"> {project.isCollapsed ? <ChevronDownIcon /> : <ChevronDownIcon className="transform rotate-180"/>} </button>
-                                                                                                {projects.length > 1 && ( <button type="button" onClick={() => handleRemoveProject(project.id)} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-600 transition-colors" aria-label="Remove project"> <TrashIcon className="w-5 h-5" /> </button> )}
-                                                                                            </div>
-                                                                                            <Transition
-                                                                                                show={!project.isCollapsed}
-                                                                                                enter="transition-all duration-300 ease-out" enterFrom="opacity-0 max-h-0" enterTo="opacity-100 max-h-[1000px]"
-                                                                                                leave="transition-all duration-200 ease-in" leaveFrom="opacity-100 max-h-[1000px]" leaveTo="opacity-0 max-h-0"
-                                                                                            >
-                                                                                                <div className="p-3 space-y-4 overflow-hidden">
-                                                                                                    <div>
-                                                                                                        <label htmlFor={`project-title-styled-${project.id}`} className={editorLabelClasses}>Title</label>
-                                                                                                        <input type="text" id={`project-title-styled-${project.id}`} value={project.title} onChange={(e) => handleProjectChange(index, 'title', e.target.value)} className={editorInputClasses}/>
-                                                                                                    </div>
-                                                                                                    <div>
-                                                                                                        <label htmlFor={`project-description-styled-${project.id}`} className={editorLabelClasses}>Description</label>
-                                                                                                        <div className={`quill-editor-override ${editorQuillWrapperClasses}`}>
-                                                                                                            <ReactQuill
-                                                                                                                theme="snow"
-                                                                                                                value={project.description}
-                                                                                                                onChange={(content) => handleProjectChange(index, 'description', content)}
-                                                                                                                modules={quillModules}
-                                                                                                                formats={quillFormats}
-                                                                                                                placeholder="Describe your project..."
-                                                                                                            />
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div>
-                                                                                                        <label htmlFor={`project-thumbnail-styled-${project.id}`} className={editorLabelClasses}>Project Thumbnail</label>
-                                                                                                        <input type="file" id={`project-thumbnail-styled-${project.id}`} accept="image/*" onChange={(e) => handleProjectThumbnailChange(index, e)} className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} />
-                                                                                                        {projects[index].isUploadingThumbnail && <p className="text-xs text-slate-400 mt-1">Uploading thumbnail ({projects[index].thumbnailUploadProgress?.toFixed(0) || 0}%)...</p>}
-                                                                                                        <div className="mt-2 flex items-center space-x-2">
-                                                                                                            {(projects[index].thumbnailUrl && projects[index].thumbnailUrl.startsWith('data:')) && !projects[index].isUploadingThumbnail && <img src={projects[index].thumbnailUrl} alt="Preview" className="rounded max-h-28 object-contain"/>}
-                                                                                                            {(projects[index].thumbnailUrl && !projects[index].thumbnailUrl.startsWith('data:')) && !projects[index].isUploadingThumbnail && <img src={projects[index].thumbnailUrl} alt="Current" className="rounded max-h-28 object-contain"/>}
-                                                                                                            {projects[index].thumbnailUrl && ( <button type="button" onClick={() => handleRemoveProjectThumbnail(index)} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors"> <TrashIcon className="w-5 h-5" /> </button> )}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div>
-                                                                                                        <label htmlFor={`project-liveDemoUrl-styled-${project.id}`} className={editorLabelClasses}>Live Demo URL (Optional)</label>
-                                                                                                        <input type="url" id={`project-liveDemoUrl-styled-${project.id}`} value={project.liveDemoUrl || ''} onChange={(e) => handleProjectChange(index, 'liveDemoUrl', e.target.value)} className={editorInputClasses} placeholder="https://your-live-project-demo.com"/>
-                                                                                                    </div>
-                                                                                                    <div>
-                                                                                                        <label htmlFor={`project-sourceCodeUrl-styled-${project.id}`} className={editorLabelClasses}>Source Code URL (Optional)</label>
-                                                                                                        <input type="url" id={`project-sourceCodeUrl-styled-${project.id}`} value={project.sourceCodeUrl || ''} onChange={(e) => handleProjectChange(index, 'sourceCodeUrl', e.target.value)} className={editorInputClasses} placeholder="https://github.com/yourusername/your-project"/>
-                                                                                                    </div>
-                                                                                                     <div>
-                                                                                                        <label htmlFor={`project-videoUrl-styled-${project.id}`} className={editorLabelClasses}>Video URL (YouTube/Vimeo - Optional)</label>
-                                                                                                        <input type="url" id={`project-videoUrl-styled-${project.id}`} value={project.videoUrl || ''} onChange={(e) => handleProjectChange(index, 'videoUrl', e.target.value)} className={editorInputClasses} placeholder="https://youtube.com/watch?v=..."/>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </Transition>
-                                                                                        </motion.div>
-                                                                                    )}
-                                                                                </Draggable>
-                                                                            ))}
-                                                                        </AnimatePresence>
-                                                                        {provided.placeholder}
-                                                                    </div>
-                                                                )}
-                                                            </Droppable>
-                                                            <button type="button" onClick={handleAddProject} className={`${buttonClasses} w-full py-3 text-base mt-4`}>Add Another Project</button>
-                                                        </Disclosure.Panel>
-                                                    </Transition>
-                                                </>
-                                            )}
-                                        </Disclosure>
+                    {/* Projects Section */}
+                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={true}>
+                        {/* ... (Same as LiveMinimalistCoderEditor's projects section JSX, but ensure project thumbnails are emphasized) ... */}
+                         {({ open }) => (
+                                <>
+                                    <Disclosure.Button className={editorSectionHeaderClasses}>
+                                        <span>Projects / Works</span>
+                                         <ChevronDownIcon className={`w-5 h-5 text-emerald-400 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+                                    </Disclosure.Button>
+                                    <Transition show={open} enter="transition duration-100 ease-out" enterFrom="transform scale-95 opacity-0 max-h-0" enterTo="transform scale-100 opacity-100 max-h-screen" leave="transition duration-75 ease-out" leaveFrom="transform scale-100 opacity-100 max-h-screen" leaveTo="transform scale-95 opacity-0 max-h-0" >
+                                        <Disclosure.Panel className="projects-section mt-3 space-y-2 overflow-hidden">
+                                            <Droppable droppableId="projectsDroppableVisual" type="PROJECTS">
+                                                {(provided) => (
+                                                    <div ref={provided.innerRef} {...provided.droppableProps} className={`space-y-2`}>
+                                                        <AnimatePresence>
+                                                            {projects.map((project, index) => (
+                                                                <Draggable key={project.id} draggableId={String(project.id)} index={index} isDragDisabled={isMobileView}>
+                                                                    {(providedDraggable) => (
+                                                                        <motion.div
+                                                                            ref={providedDraggable.innerRef}
+                                                                            {...providedDraggable.draggableProps}
+                                                                            variants={listItemVariants}
+                                                                            initial="initial"
+                                                                            animate="animate"
+                                                                            exit="exit"
+                                                                            layout
+                                                                            className={`project-item-editor-wrapper ${editorDraggableItemBg} rounded-md shadow-md`}
+                                                                        >
+                                                                            <div className="flex justify-between items-center p-3 border-b border-slate-600">
+                                                                                <div className="flex items-center flex-grow">
+                                                                                    <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}> <DragHandleIcon /> </div>
+                                                                                    <h4 className={`text-md font-semibold ${editorDraggableItemText} flex-grow cursor-pointer`} onClick={() => handleToggleProjectItemCollapse(project.id)}> {project.title || `Project ${index + 1}`} </h4>
+                                                                                </div>
+                                                                                <button type="button" onClick={() => handleToggleProjectItemCollapse(project.id)} className="p-1 text-slate-400 hover:text-slate-200 mr-2"> {project.isCollapsed ? <ChevronDownIcon /> : <ChevronDownIcon className="transform rotate-180"/>} </button>
+                                                                                {projects.length > 1 && ( <button type="button" onClick={() => handleRemoveProject(project.id)} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-600 transition-colors" aria-label="Remove project"> <TrashIcon className="w-5 h-5" /> </button> )}
+                                                                            </div>
+                                                                            <Transition
+                                                                                show={!project.isCollapsed}
+                                                                                enter="transition-all duration-300 ease-out" enterFrom="opacity-0 max-h-0" enterTo="opacity-100 max-h-[1000px]"
+                                                                                leave="transition-all duration-200 ease-in" leaveFrom="opacity-100 max-h-[1000px]" leaveTo="opacity-0 max-h-0"
+                                                                            >
+                                                                                <div className="p-3 space-y-4 overflow-hidden">
+                                                                                    <div>
+                                                                                        <label htmlFor={`project-title-visual-${project.id}`} className={editorLabelClasses}>Title</label>
+                                                                                        <input type="text" id={`project-title-visual-${project.id}`} value={project.title} onChange={(e) => handleProjectChange(index, 'title', e.target.value)} className={editorInputClasses}/>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label htmlFor={`project-description-visual-${project.id}`} className={editorLabelClasses}>Description (Short & Sweet)</label>
+                                                                                        <div className={`quill-editor-override ${editorQuillWrapperClasses}`}>
+                                                                                            <ReactQuill
+                                                                                                theme="snow"
+                                                                                                value={project.description}
+                                                                                                onChange={(content) => handleProjectChange(index, 'description', content)}
+                                                                                                modules={quillModules}
+                                                                                                formats={quillFormats}
+                                                                                                placeholder="Briefly describe your project..."
+                                                                                            />
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label htmlFor={`project-thumbnail-visual-${project.id}`} className={editorLabelClasses}>Project Thumbnail/Main Image (High Quality)</label>
+                                                                                        <input type="file" id={`project-thumbnail-visual-${project.id}`} accept="image/*" onChange={(e) => handleProjectThumbnailChange(index, e)} className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} />
+                                                                                        {projects[index].isUploadingThumbnail && <p className="text-xs text-slate-400 mt-1">Uploading thumbnail ({projects[index].thumbnailUploadProgress?.toFixed(0) || 0}%)...</p>}
+                                                                                        <div className="mt-2 flex items-center space-x-2">
+                                                                                            {(projects[index].thumbnailUrl && projects[index].thumbnailUrl.startsWith('data:')) && !projects[index].isUploadingThumbnail && <img src={projects[index].thumbnailUrl} alt="Preview" className="rounded max-h-28 object-contain"/>}
+                                                                                            {(projects[index].thumbnailUrl && !projects[index].thumbnailUrl.startsWith('data:')) && !projects[index].isUploadingThumbnail && <img src={projects[index].thumbnailUrl} alt="Current" className="rounded max-h-28 object-contain"/>}
+                                                                                            {projects[index].thumbnailUrl && ( <button type="button" onClick={() => handleRemoveProjectThumbnail(index)} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors"> <TrashIcon className="w-5 h-5" /> </button> )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label htmlFor={`project-liveDemoUrl-visual-${project.id}`} className={editorLabelClasses}>Live Demo/View URL (Optional)</label>
+                                                                                        <input type="url" id={`project-liveDemoUrl-visual-${project.id}`} value={project.liveDemoUrl || ''} onChange={(e) => handleProjectChange(index, 'liveDemoUrl', e.target.value)} className={editorInputClasses} placeholder="https://your-live-project.com"/>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label htmlFor={`project-sourceCodeUrl-visual-${project.id}`} className={editorLabelClasses}>More Info/Case Study URL (Optional)</label>
+                                                                                        <input type="url" id={`project-sourceCodeUrl-visual-${project.id}`} value={project.sourceCodeUrl || ''} onChange={(e) => handleProjectChange(index, 'sourceCodeUrl', e.target.value)} className={editorInputClasses} placeholder="https://your-case-study.com"/>
+                                                                                    </div>
+                                                                                     <div>
+                                                                                        <label htmlFor={`project-videoUrl-visual-${project.id}`} className={editorLabelClasses}>Video URL (YouTube/Vimeo - Optional)</label>
+                                                                                        <input type="url" id={`project-videoUrl-visual-${project.id}`} value={project.videoUrl || ''} onChange={(e) => handleProjectChange(index, 'videoUrl', e.target.value)} className={editorInputClasses} placeholder="https://youtube.com/watch?v=..."/>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </Transition>
+                                                                        </motion.div>
+                                                                    )}
+                                                                </Draggable>
+                                                            ))}
+                                                        </AnimatePresence>
+                                                        {provided.placeholder}
+                                                    </div>
+                                                )}
+                                            </Droppable>
+                                            <button type="button" onClick={handleAddProject} className={`${buttonClasses} w-full py-3 text-base mt-4`}>Add Another Project</button>
+                                        </Disclosure.Panel>
+                                    </Transition>
+                                </>
+                            )}
+                    </Disclosure>
 
-                    {/* Custom Sections UI - Re-enabled */}
+                    {/* Custom Sections UI */}
                     <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={false}>
+                         {/* ... (Same as LiveMinimalistCoderEditor's custom sections JSX) ... */}
                          {({ open }) => (
                             <>
                                 <Disclosure.Button className={editorSectionHeaderClasses}>
@@ -731,24 +824,108 @@ const handleSavePortfolio = async () => {
                                 </Disclosure.Button>
                                 <Transition show={open} enter="transition duration-100 ease-out" enterFrom="transform scale-95 opacity-0 max-h-0" enterTo="transform scale-100 opacity-100 max-h-screen" leave="transition duration-75 ease-out" leaveFrom="transform scale-100 opacity-100 max-h-screen" leaveTo="transform scale-95 opacity-0 max-h-0" >
                                     <Disclosure.Panel className="custom-sections-list mt-3 space-y-2 overflow-hidden">
-                                        {/* ... Full Custom Sections UI from LiveBlankPortfolioEditor (with AnimatePresence for items) ... */}
+                                        <Droppable droppableId="customSectionsDroppableVisual" type="CUSTOM_SECTIONS">
+                                            {(provided) => (
+                                                <div ref={provided.innerRef} {...provided.droppableProps} className={`space-y-2`}>
+                                                    <AnimatePresence>
+                                                        {customSections.map((section, sectionIndex) => (
+                                                            <Draggable key={section.id} draggableId={String(section.id)} index={sectionIndex} isDragDisabled={isMobileView}>
+                                                                {(providedDraggable) => (
+                                                                    <motion.div
+                                                                        ref={providedDraggable.innerRef}
+                                                                        {...providedDraggable.draggableProps}
+                                                                        variants={listItemVariants}
+                                                                        initial="initial"
+                                                                        animate="animate"
+                                                                        exit="exit"
+                                                                        layout
+                                                                        className={`custom-section-block-editor bg-slate-750 rounded-lg border border-slate-700`}
+                                                                    >
+                                                                        <div className="flex justify-between items-center p-3 border-b border-slate-600">
+                                                                            <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}> <DragHandleIcon /> </div>
+                                                                            <input type="text" value={section.sectionTitle} onChange={(e) => handleCustomSectionTitleChange(sectionIndex, e.target.value)} placeholder="Custom Section Title" className={`${editorInputClasses} text-lg font-semibold flex-grow !py-2`}/>
+                                                                            <button type="button" onClick={() => handleRemoveCustomSection(section.id)} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors ml-2" aria-label="Remove section"> <RemoveIcon className="w-5 h-5" /> </button>
+                                                                        </div>
+                                                                        <Droppable droppableId={`CUSTOM_SECTION_ITEMS_${section.id}`} type={`CUSTOM_SECTION_ITEMS_${section.id}`}>
+                                                                            {(providedItems) => (
+                                                                                <div ref={providedItems.innerRef} {...providedItems.droppableProps} className="space-y-3 p-3">
+                                                                                    <AnimatePresence>
+                                                                                        {section.items && section.items.map((item, itemIndex) => (
+                                                                                             <Draggable key={item.id} draggableId={String(item.id)} index={itemIndex} isDragDisabled={isMobileView}>
+                                                                                                {(providedItemDraggable) => (
+                                                                                                    <motion.div
+                                                                                                        ref={providedItemDraggable.innerRef}
+                                                                                                        {...providedItemDraggable.draggableProps}
+                                                                                                        variants={listItemVariants}
+                                                                                                        initial="initial"
+                                                                                                        animate="animate"
+                                                                                                        exit="exit"
+                                                                                                        layout
+                                                                                                        className={`${editorDraggableItemBg} p-3 rounded-md shadow`}
+                                                                                                    >
+                                                                                                        <div className="flex justify-between items-center mb-2">
+                                                                                                            <div {...providedItemDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}> <DragHandleIcon className="w-4 h-4 text-slate-400"/> </div>
+                                                                                                            <h5 className={`text-md font-medium ${editorDraggableItemText} flex-grow cursor-pointer`} onClick={() => handleToggleCustomSectionItemCollapse(sectionIndex, item.id)}> {item.itemTitle || `Entry ${itemIndex + 1}`} </h5>
+                                                                                                            <button type="button" onClick={() => handleToggleCustomSectionItemCollapse(sectionIndex, item.id)} className="p-1 text-slate-400 hover:text-slate-200 mr-1"> {item.isCollapsed ? <ChevronDownIcon className="w-4 h-4"/> : <ChevronDownIcon className="w-4 h-4 transform rotate-180"/>} </button>
+                                                                                                            <button type="button" onClick={() => handleRemoveCustomSectionItem(sectionIndex, item.id)} className={`text-rose-400 hover:text-rose-300 p-1 rounded-full hover:bg-slate-600 transition-colors`}> <RemoveIcon className="w-4 h-4" /> </button>
+                                                                                                        </div>
+                                                                                                        <Transition
+                                                                                                            show={!item.isCollapsed}
+                                                                                                            enter="transition-all duration-300 ease-out" enterFrom="opacity-0 max-h-0" enterTo="opacity-100 max-h-[1000px]"
+                                                                                                            leave="transition-all duration-200 ease-in" leaveFrom="opacity-100 max-h-[1000px]" leaveTo="opacity-0 max-h-0"
+                                                                                                        >
+                                                                                                            <div className="space-y-3 overflow-hidden">
+                                                                                                                <input type="text" value={item.itemTitle} onChange={(e) => handleCustomSectionItemChange(sectionIndex, itemIndex, 'itemTitle', e.target.value)} placeholder="Entry Title" className={`${editorInputClasses} !py-2`}/>
+                                                                                                                <div className={`quill-editor-override ${editorQuillWrapperClasses}`}>
+                                                                                                                    <ReactQuill
+                                                                                                                        theme="snow"
+                                                                                                                        value={item.itemDetails}
+                                                                                                                        onChange={(content) => handleCustomSectionItemChange(sectionIndex, itemIndex, 'itemDetails', content)}
+                                                                                                                        modules={quillModules}
+                                                                                                                        formats={quillFormats}
+                                                                                                                        placeholder="Details for this entry..."
+                                                                                                                    />
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </Transition>
+                                                                                                    </motion.div>
+                                                                                                )}
+                                                                                            </Draggable>
+                                                                                        ))}
+                                                                                    </AnimatePresence>
+                                                                                    {providedItems.placeholder}
+                                                                                </div>
+                                                                            )}
+                                                                        </Droppable>
+                                                                        <div className="p-3 pt-0">
+                                                                            <button type="button" onClick={() => handleAddCustomSectionItem(sectionIndex)} className="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-3 rounded-full text-xs shadow-md transition-colors"> + Add Entry </button>
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+                                                            </Draggable>
+                                                        ))}
+                                                    </AnimatePresence>
+                                                    {provided.placeholder}
+                                                </div>
+                                            )}
+                                        </Droppable>
+                                        <button type="button" onClick={handleAddCustomSection} className={`${buttonClasses} w-full py-3 text-base mt-4`}> Add New Custom Section Block </button>
                                     </Disclosure.Panel>
                                 </Transition>
                             </>
                         )}
                     </Disclosure>
 
-                    {/* Customize Styles & Layout Section with Disclosure */}
+                    {/* Customize Styles & Layout Section */}
                     <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={false}>
                         {({ open }) => (
                             <>
                                 <Disclosure.Button className={editorSectionHeaderClasses}>
-                                    <span>Customize Styles & Layout (Preview)</span>
+                                    <span>Customize Styles & Layout</span>
                                     <ChevronDownIcon className={`w-5 h-5 text-emerald-400 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
                                 </Disclosure.Button>
                                 <Transition show={open} enter="transition duration-100 ease-out" enterFrom="transform scale-95 opacity-0 max-h-0" enterTo="transform scale-100 opacity-100 max-h-screen" leave="transition duration-75 ease-out" leaveFrom="transform scale-100 opacity-100 max-h-screen" leaveTo="transform scale-95 opacity-0 max-h-0" >
                                     <Disclosure.Panel className="customization-section mt-3 space-y-6 overflow-hidden">
-                                        {/* Tailor these options for Visual Storyteller */}
                                         <div>
                                             <label htmlFor="fontFamilyVisual" className={editorLabelClasses}>Font Family</label>
                                             <select id="fontFamilyVisual" value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className={editorInputClasses}>
@@ -758,18 +935,27 @@ const handleSavePortfolio = async () => {
                                         <div>
                                             <label htmlFor="colorPaletteVisual" className={editorLabelClasses}>Color Palette</label>
                                             <select id="colorPaletteVisual" onChange={(e) => handlePaletteChange(e.target.value)} className={editorInputClasses} >
-                                                <option value="">Select a Palette (Optional)</option>
+                                                <option value="">Select a Palette (Resets colors)</option>
                                                 {predefinedColorPalettes.map(palette => ( <option key={palette.name} value={palette.name}> {palette.name} </option> ))}
                                             </select>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                            {/* ... Color pickers ... */}
-                                        </div>
-                                        <div>
-                                            <label htmlFor="headerLayoutVisual" className={editorLabelClasses}>Header Layout</label>
-                                            <select id="headerLayoutVisual" value={headerLayout} onChange={(e) => setHeaderLayout(e.target.value)} className={editorInputClasses}>
-                                                {headerLayoutOptions.map(layout => ( <option key={layout.id} value={layout.id}>{layout.name}</option> ))}
-                                            </select>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label htmlFor="headingColorVisual" className={editorLabelClasses}>Heading Color</label>
+                                                <input type="color" id="headingColorVisual" value={headingColor} onChange={(e) => setHeadingColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="bodyTextColorVisual" className={editorLabelClasses}>Body Text Color</label>
+                                                <input type="color" id="bodyTextColorVisual" value={bodyTextColor} onChange={(e) => setBodyTextColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="accentColorVisual" className={editorLabelClasses}>Primary Accent</label>
+                                                <input type="color" id="accentColorVisual" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
+                                            </div>
+                                             <div>
+                                                <label htmlFor="portfolioBackgroundColorVisual" className={editorLabelClasses}>Portfolio Background</label>
+                                                <input type="color" id="portfolioBackgroundColorVisual" value={portfolioBackgroundColor} onChange={(e) => setPortfolioBackgroundColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
+                                            </div>
                                         </div>
                                         <div>
                                             <label htmlFor="skillDisplayStyleVisual" className={editorLabelClasses}>Skill Display Style</label>
@@ -789,11 +975,6 @@ const handleSavePortfolio = async () => {
                                             <label htmlFor="sectionSpacingVisual" className={editorLabelClasses}> Section Spacing: <span className="font-normal text-slate-400 text-xs">({sectionSpacing * 0.25}rem)</span> </label>
                                             <input type="range" id="sectionSpacingVisual" min="0" max="8" step="1" value={sectionSpacing} onChange={(e) => setSectionSpacing(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" />
                                             <div className="flex justify-between text-xs text-slate-400 px-1 mt-1"><span>Tight</span><span>Default</span><span>Spacious</span></div>
-                                        </div>
-                                        {/* Background color for the portfolio itself (can be part of palettes or a separate color picker) */}
-                                        <div>
-                                            <label htmlFor="portfolioBackgroundColorVisual" className={editorLabelClasses}>Portfolio Background Color</label>
-                                            <input type="color" id="portfolioBackgroundColorVisual" value={portfolioBackgroundColor} onChange={(e) => setPortfolioBackgroundColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
                                         </div>
                                     </Disclosure.Panel>
                                 </Transition>

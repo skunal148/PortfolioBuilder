@@ -1,7 +1,7 @@
+// skunal148/portfoliobuilder/PortfolioBuilder-ad74f8854a7d0e220f440f62c535b153baf3850c/src/App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { auth, db } from './components/firebase';
-// import { doc, getDoc } from 'firebase/firestore'; // Not directly used here for profile check
+import { auth } from './components/firebase'; // db not directly used here
 import { AnimatePresence, motion } from 'framer-motion';
 
 // Layouts
@@ -18,11 +18,8 @@ import ProfileForm from './components/forms/ProfileForm';
 import TemplateSelection from './components/TemplateSelection';
 
 // Specific Template Editors
-import LiveBlankPortfolioEditor from './templates/LiveBlankPortfolioEditor'
-// Assuming you have renamed LivePortfolioEditor.js to LiveMinimalistCoderEditor.js
-// and placed it in src/components/ or src/templates/
-// For this example, I'll assume it's in src/templates/
-import LiveMinimalistCoderEditor from './templates/LiveMinimalistCoderEditor'; // ADJUST PATH IF NEEDED
+import LiveBlankPortfolioEditor from './templates/LiveBlankPortfolioEditor';
+import LiveMinimalistCoderEditor from './templates/LiveMinimalistCoderEditor';
 import LiveVisualStorytellerEditor from './templates/LiveVisualStorytellerEditor'; // NEW EDITOR
 
 import PortfolioPreview from './components/PortfolioPreview';
@@ -32,15 +29,15 @@ import './App.css';
 
 // Animation variants for page transitions
 const pageVariants = {
-  initial: { opacity: 0 },
-  in: { opacity: 1 },
-  out: { opacity: 0 }
+  initial: { opacity: 0, x: -50 },
+  in: { opacity: 1, x: 0 },
+  out: { opacity: 0, x: 50 }
 };
 
 const pageTransition = {
   type: "tween",
   ease: "anticipate",
-  duration: 0.5
+  duration: 0.4
 };
 
 const AnimatedPage = ({ children }) => (
@@ -64,17 +61,12 @@ function AppContent() {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setCurrentUser(user);
       setLoadingAuth(false);
-      if (user) {
-        console.log("[App.js] User is logged in:", user.uid);
-      } else {
-        console.log("[App.js] User is logged out.");
-      }
     });
     return unsubscribe;
   }, []);
 
   if (loadingAuth) {
-    return <div className="flex justify-center items-center min-h-screen bg-slate-800 text-white text-xl">Loading Application...</div>;
+    return <div className="flex justify-center items-center min-h-screen bg-slate-900 text-white text-xl">Loading Application...</div>;
   }
 
   return (
@@ -103,15 +95,15 @@ function AppContent() {
           
           {/* Creation Routes for different templates */}
           <Route
-            path="create-blank-portfolio" // No :templateIdFromUrl needed for blank
+            path="create-blank-portfolio"
             element={<AnimatedPage><LiveBlankPortfolioEditor /></AnimatedPage>}
           />
           <Route
-            path="create-coder-portfolio/:templateIdFromUrl" // For Minimalist Coder
+            path="create-coder-portfolio/:templateIdFromUrl"
             element={<AnimatedPage><LiveMinimalistCoderEditor /></AnimatedPage>}
           />
           <Route
-            path="create-visual-portfolio/:templateIdFromUrl" // NEW: For Visual Storyteller
+            path="create-visual-portfolio/:templateIdFromUrl" 
             element={<AnimatedPage><LiveVisualStorytellerEditor /></AnimatedPage>}
           />
 
@@ -121,19 +113,23 @@ function AppContent() {
             element={<AnimatedPage><LiveBlankPortfolioEditor /></AnimatedPage>}
           />
           <Route
-            path="edit-coder-portfolio/:portfolioId" // For Minimalist Coder
+            path="edit-coder-portfolio/:portfolioId" 
             element={<AnimatedPage><LiveMinimalistCoderEditor /></AnimatedPage>}
           />
           <Route
-            path="edit-visual-portfolio/:portfolioId" // NEW: For Visual Storyteller
+            path="edit-visual-portfolio/:portfolioId" 
             element={<AnimatedPage><LiveVisualStorytellerEditor /></AnimatedPage>}
           />
           
-          {/* Fallback/Generic styled editor route (if you still need one, otherwise remove) */}
-          {/* <Route 
+          {/* Fallback for older/generic styled portfolios if any, pointing to a relevant editor.
+              If 'style-1' and 'style-2' were significant, they might need their own routes
+              or a more generic 'edit-styled/:portfolioId' that can handle them.
+              For now, let's assume any other ID will also use the LiveMinimalistCoderEditor or you create a generic one.
+          */}
+          <Route 
             path="edit-styled/:portfolioId" 
-            element={<AnimatedPage><LiveMinimalistCoderEditor /></AnimatedPage>} // Or a generic styled editor
-          /> */}
+            element={<AnimatedPage><LiveMinimalistCoderEditor /></AnimatedPage>} // Or a more generic styled editor
+          />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

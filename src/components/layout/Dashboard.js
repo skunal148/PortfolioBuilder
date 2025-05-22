@@ -1,7 +1,18 @@
+// skunal148/portfoliobuilder/PortfolioBuilder-ad74f8854a7d0e220f440f62c535b153baf3850c/src/components/layout/Dashboard.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase'; // Ensure this path is correct
+import { auth, db } from '../firebase'; 
 import { collection, getDocs, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
+
+// Define placeholder images for dashboard cards
+const templateBackgroundImages = {
+    'blank': '/images/template-blank-preview.png', // Replace with your actual preview
+    'style-coder-min': '/images/template-coder-preview.png', // Replace with your actual preview
+    'style-visual-heavy': '/images/template-visual-preview.png', // Replace with your actual preview
+    // Add other template IDs and their preview image paths if you have more
+    'default': 'https://placehold.co/600x400/334155/94a3b8?text=Portfolio' // Fallback
+};
+
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -10,12 +21,8 @@ function Dashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log("[Dashboard Component] Initializing. auth.currentUser:", auth.currentUser);
-
     const fetchPortfolios = async () => {
-      console.log("[Dashboard useEffect] Running. auth.currentUser inside useEffect:", auth.currentUser);
       if (!auth.currentUser) {
-        console.error("[Dashboard Fetch] auth.currentUser is null. Halting fetch.");
         setLoading(false);
         setError("User not authenticated. Please log in to view your dashboard.");
         return;
@@ -24,7 +31,6 @@ function Dashboard() {
       setLoading(true);
       setError(null);
       try {
-        console.log("[Dashboard Fetch] Current User UID for query:", auth.currentUser.uid);
         const q = query(
           collection(db, 'portfolios'),
           where('userId', '==', auth.currentUser.uid), 
@@ -37,7 +43,6 @@ function Dashboard() {
           userPortfolios.push({ id: doc.id, ...doc.data() });
         });
         setPortfolios(userPortfolios);
-        console.log("[Dashboard Fetch] Fetched user-specific portfolios:", userPortfolios);
       } catch (err) {
         setError(err.message || "Failed to load portfolios.");
         console.error("Error fetching portfolios:", err);
@@ -74,27 +79,28 @@ function Dashboard() {
     }
     
     if (portfolio.templateId === 'blank') {
-      console.log(`[Dashboard] Navigating to edit blank portfolio: /edit-blank/${portfolio.id}`);
       navigate(`/edit-blank/${portfolio.id}`);
+    } else if (portfolio.templateId === 'style-coder-min') {
+      navigate(`/edit-coder-portfolio/${portfolio.id}`);
+    } else if (portfolio.templateId === 'style-visual-heavy') {
+      navigate(`/edit-visual-portfolio/${portfolio.id}`);
     } else {
-      console.log(`[Dashboard] Navigating to edit styled portfolio: /edit-styled/${portfolio.id} (template: ${portfolio.templateId})`);
-      navigate(`/edit-styled/${portfolio.id}`);
+      // Fallback for older styled portfolios or a generic editor if they don't have specific routes
+      console.warn(`Editing portfolio with unknown or older templateId: ${portfolio.templateId}. Routing to generic editor.`);
+      navigate(`/edit-styled/${portfolio.id}`); 
     }
   };
-
-  // MODIFIED: handleViewPortfolio is removed as the button is moved to editor pages
-  // const handleViewPortfolio = (portfolioId) => { ... };
-
-  console.log("[Dashboard Component] Rendering. Loading:", loading, "Error:", error, "Portfolios count:", portfolios.length);
+  
+  const handleViewPortfolio = (portfolioId) => {
+    navigate(`/portfolio/${portfolioId}`);
+  };
 
 
   if (loading) {
-    console.log("[Dashboard Component] Rendering: Loading state");
     return <div className="p-6 text-center text-slate-300 text-xl">Loading your portfolios...</div>;
   }
 
   if (error && error === "User not authenticated. Please log in to view your dashboard.") {
-    console.log("[Dashboard Component] Rendering: Authentication Error state -", error);
      return (
       <div className="p-4 md:p-6 container mx-auto">
         <div className="bg-red-900/30 border border-red-700 text-red-300 px-4 py-3 rounded-lg relative text-center" role="alert">
@@ -111,13 +117,11 @@ function Dashboard() {
     );
   }
   
-  console.log("[Dashboard Component] Rendering: Main content or other error/empty state. Portfolios count:", portfolios.length);
-
   return (
     <div className="p-4 md:p-6"> 
       <div className="container mx-auto">
-        <div className="flex flex-col items-start mb-10"> 
-          <h1 className="text-4xl font-bold text-slate-100 mb-6">Your Dashboard</h1>
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-10"> 
+          <h1 className="text-4xl font-bold text-slate-100 mb-6 sm:mb-0">Your Dashboard</h1>
           <button
             onClick={handleAddProjectClick}
             className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75 text-lg transform hover:scale-105"
@@ -126,7 +130,7 @@ function Dashboard() {
           </button>
         </div>
 
-        {error && ( 
+        {error && !error.includes("User not authenticated") && ( 
           <div className="bg-red-900/30 border border-red-700 text-red-300 px-4 py-3 rounded-lg relative mb-6 text-center" role="alert">
             <strong className="font-bold">Error: </strong>
             <span className="block sm:inline">{error}</span>
@@ -155,7 +159,7 @@ function Dashboard() {
                 >
                   <div
                     className="h-52 bg-slate-700 bg-cover bg-center relative group-hover:opacity-90 transition-opacity"
-                    style={{ backgroundImage: portfolio.templateId && templateBackgroundImages[portfolio.templateId] ? `url(${process.env.PUBLIC_URL}${templateBackgroundImages[portfolio.templateId]})` : 'url(https://placehold.co/600x400/334155/94a3b8?text=Portfolio+Preview)' }}
+                    style={{ backgroundImage: `url(${templateBackgroundImages[portfolio.templateId] || templateBackgroundImages['default']})` }}
                   >
                      <div className="absolute top-3 right-3 bg-slate-900 bg-opacity-70 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-medium">
                       Template: {portfolio.templateId || 'N/A'}
@@ -165,11 +169,13 @@ function Dashboard() {
                     <h3 className="text-2xl font-semibold text-slate-100 mb-2 truncate group-hover:text-emerald-400 transition-colors">
                       {portfolio.name || 'Untitled Portfolio'}
                     </h3>
+                    <p className="text-slate-400 text-sm mb-1">
+                      ID: <span className="font-mono text-xs">{portfolio.id}</span>
+                    </p>
                     <p className="text-slate-400 text-sm mb-5 flex-grow">
                       Last updated: {portfolio.lastUpdated ? new Date(portfolio.lastUpdated.seconds * 1000).toLocaleDateString() : 'N/A'}
                     </p>
-                    {/* MODIFIED: Removed View button, adjusted layout for two buttons */}
-                    <div className="flex space-x-2 mt-auto pt-4 border-t border-slate-700">
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-auto pt-4 border-t border-slate-700">
                       <button
                         onClick={() => handleEditPortfolio(portfolio)}
                         className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg text-sm transition duration-150 ease-in-out"
@@ -193,11 +199,5 @@ function Dashboard() {
     </div>
   );
 }
-
-const templateBackgroundImages = {
-    'style-1': '/images/template-1-preview.jpg', 
-    'style-2': '/images/template-2-preview.jpg',
-    'blank': '/images/template-blank-preview.png', 
-};
 
 export default Dashboard;

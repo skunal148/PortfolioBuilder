@@ -70,6 +70,7 @@ const CODER_MIN_DEFAULTS = {
     skillDisplayStyle: 'text-only-list',
     skillIconChipBackgroundColor: '#2d3748', // For consistency if skillChipStyleOverride is 'theme'
     skillIconChipTextColor: '#d1d5db',     // For consistency
+    tagline: 'Software Engineer | Full-Stack Developer'
 };
 
 // Fallback defaults for any other future styled templates
@@ -120,6 +121,7 @@ function LivePortfolioEditor() {
     const [name, setName] = useState('');
     const [profilePicture, setProfilePicture] = useState('');
     const [profilePictureFile, setProfilePictureFile] = useState(null);
+    const [tagline, setTagline] = useState(CODER_MIN_DEFAULTS.tagline); // New state for tagline
     const [linkedinUrl, setLinkedinUrl] = useState('');
     const [githubUrl, setGithubUrl] = useState('');
     const [aboutMe, setAboutMe] = useState('');
@@ -170,6 +172,7 @@ function LivePortfolioEditor() {
             setSecondaryAccentColor(CODER_MIN_DEFAULTS.secondaryAccentColor);
             setHeaderLayout(CODER_MIN_DEFAULTS.headerLayout);
             setSkillDisplayStyle(CODER_MIN_DEFAULTS.skillDisplayStyle);
+            setTagline(CODER_MIN_DEFAULTS.tagline);
         }
 
         if (id) { // Editing existing portfolio
@@ -180,6 +183,7 @@ function LivePortfolioEditor() {
                     const data = docSnap.data();
                     setName(data.name || '');
                     setProfilePicture(data.profilePicture || '');
+                    setTagline(data.tagline || CODER_MIN_DEFAULTS.tagline);
                     setLinkedinUrl(data.linkedinUrl || '');
                     setGithubUrl(data.githubUrl || '');
                     setAboutMe(data.aboutMe || '');
@@ -431,6 +435,7 @@ function LivePortfolioEditor() {
                 userId: auth.currentUser.uid,
                 templateId: activeTemplateIdForPreview,
                 name, profilePicture: finalProfilePictureUrl,
+                tagline,
                 linkedinUrl, githubUrl, aboutMe,
                 projects: projectsToSave, skills, 
                 customSections: customSectionsToSave, // Save custom sections
@@ -523,7 +528,7 @@ function LivePortfolioEditor() {
 
     const portfolioDataForPreview = {
         name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills, 
-        customSections, // Pass customSections to preview
+        customSections,tagline, // Pass customSections to preview
         fontFamily: activeTemplateIdForPreview === 'style-coder-min' ? CODER_MIN_DEFAULTS.fontFamily : fontFamily,
         headingColor: activeTemplateIdForPreview === 'style-coder-min' ? CODER_MIN_DEFAULTS.headingColor : headingColor,
         bodyTextColor: activeTemplateIdForPreview === 'style-coder-min' ? CODER_MIN_DEFAULTS.bodyTextColor : bodyTextColor,
@@ -562,6 +567,10 @@ function LivePortfolioEditor() {
                         <div>
                             <label htmlFor="name-styled" className={editorLabelClasses}>Full Name</label>
                             <input type="text" id="name-styled" value={name} onChange={(e) => setName(e.target.value)} className={editorInputClasses} placeholder="Your Full Name" />
+                        </div>
+                        <div>
+                            <label htmlFor="tagline-coder" className={editorLabelClasses}>Tagline / Short Bio</label>
+                            <input type="text" id="tagline-coder" value={tagline} onChange={(e) => setTagline(e.target.value)} className={editorInputClasses} placeholder={CODER_MIN_DEFAULTS.tagline} />
                         </div>
                         <div>
                             <label htmlFor="profilePicture-styled" className={editorLabelClasses}>Profile Picture</label>
