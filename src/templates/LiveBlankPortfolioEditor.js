@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { storage, db, auth } from './firebase';
+import { storage, db, auth } from '../components/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import './quill.css';
+import '../components/quill.css';
 import { Disclosure, Transition } from '@headlessui/react'; // Import Disclosure and Transition
 
-import PortfolioDisplay from './PortfolioDisplay';
+import PortfolioDisplay from '../components/PortfolioDisplay';
 
 // --- Icons ---
 const RemoveIcon = ({ className = "w-4 h-4" }) => (
@@ -572,7 +572,7 @@ function LiveBlankPortfolioEditor() {
 
     const editorPanelBg = "bg-slate-800";
     const editorSectionBg = "bg-slate-850";
-    const editorInputClasses = "shadow-inner appearance-none border border-slate-700 rounded w-full py-3 px-4 bg-slate-700 text-slate-100 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder-slate-500";
+    const editorInputClasses = "shadow-inner appearance-none border border-slate-700 rounded w-full py-3 px-4 bg-slate-700 text-slate-100 leading-tight focus:outline-none focus:ring-inset focus:ring-emerald-400 placeholder-slate-500";
     const editorLabelClasses = "block text-slate-300 text-sm font-semibold mb-2";
     const editorSectionHeaderClasses = "text-2xl font-semibold text-emerald-400 mb-3 cursor-pointer flex justify-between items-center w-full";
     const editorDraggableItemBg = "bg-slate-700";
@@ -750,7 +750,14 @@ function LiveBlankPortfolioEditor() {
                                                                             <h4 className={`text-md font-semibold ${editorDraggableItemText} flex-grow cursor-pointer`} onClick={() => handleToggleProjectItemCollapse(project.id)}> {project.title || `Project ${index + 1}`} </h4>
                                                                         </div>
                                                                         <button type="button" onClick={() => handleToggleProjectItemCollapse(project.id)} className="p-1 text-slate-400 hover:text-slate-200 mr-2"> {project.isCollapsed ? <ChevronDownIcon /> : <ChevronDownIcon className="transform rotate-180"/>} </button>
-                                                                        {projects.length > 1 && ( <button type="button" onClick={() => handleRemoveProject(project.id)} className={`bg-rose-600 hover:bg-rose-700 text-white ${smallButtonClasses} !px-2 !py-1`}>Remove</button> )}
+                                                                        {projects.length > 1 && ( <button 
+                                                                                    type="button" 
+                                                                                    onClick={() => handleRemoveProject(project.id)} 
+                                                                                    className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-600 transition-colors"
+                                                                                    aria-label="Remove project"
+                                                                                >
+                                                                                    <TrashIcon className="w-5 h-5" />
+                                                                                </button> )}
                                                                     </div>
                                                                     <Transition
                                                                         show={!project.isCollapsed}

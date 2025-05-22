@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { auth, db } from './components/firebase'; // Ensure this path is correct
-// import { doc, getDoc } from 'firebase/firestore'; // Not used in this App.js version directly for profile check
-import { AnimatePresence, motion } from 'framer-motion'; // Import AnimatePresence and motion
+import { auth, db } from './components/firebase';
+// import { doc, getDoc } from 'firebase/firestore'; // Not directly used here for profile check
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
@@ -16,33 +16,33 @@ import SignUp from './components/auth/SignUp';
 // Forms & Editors
 import ProfileForm from './components/forms/ProfileForm';
 import TemplateSelection from './components/TemplateSelection';
-import LiveBlankPortfolioEditor from './components/LiveBlankPortfolioEditor';
-import LivePortfolioEditor from './components/LivePortfolioEditor';
-import PortfolioPreview from './components/PortfolioPreview'; // For VIEWING portfolios
+
+// Specific Template Editors
+import LiveBlankPortfolioEditor from './templates/LiveBlankPortfolioEditor'
+// Assuming you have renamed LivePortfolioEditor.js to LiveMinimalistCoderEditor.js
+// and placed it in src/components/ or src/templates/
+// For this example, I'll assume it's in src/templates/
+import LiveMinimalistCoderEditor from './templates/LiveMinimalistCoderEditor'; // ADJUST PATH IF NEEDED
+import LiveVisualStorytellerEditor from './templates/LiveVisualStorytellerEditor'; // NEW EDITOR
+
+import PortfolioPreview from './components/PortfolioPreview';
 
 import './index.css';
 import './App.css';
 
 // Animation variants for page transitions
 const pageVariants = {
-  initial: {
-    opacity: 0,
-  },
-  in: {
-    opacity: 1,
-  },
-  out: {
-    opacity: 0,
-  }
+  initial: { opacity: 0 },
+  in: { opacity: 1 },
+  out: { opacity: 0 }
 };
 
 const pageTransition = {
   type: "tween",
-  ease: "anticipate", // Or "easeInOut", "linear"
-  duration: 0.5 // Adjust duration (in seconds)
+  ease: "anticipate",
+  duration: 0.5
 };
 
-// Wrapper for individual route elements to apply motion
 const AnimatedPage = ({ children }) => (
   <motion.div
     initial="initial"
@@ -50,17 +50,13 @@ const AnimatedPage = ({ children }) => (
     exit="out"
     variants={pageVariants}
     transition={pageTransition}
-    // style={{ position: 'absolute', width: '100%' }} // This can help with layout shifts during transitions with mode="wait"
-                                                    // However, it can also cause issues if pages have different heights or scroll positions.
-                                                    // Test with and without this style based on your layout.
-                                                    // For simple fades, it might not be strictly necessary if content reflow isn't an issue.
   >
     {children}
   </motion.div>
 );
 
-function AppContent() { // Renamed App to AppContent to use useLocation
-  const location = useLocation(); // React Router's useLocation hook
+function AppContent() {
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
 
@@ -74,7 +70,7 @@ function AppContent() { // Renamed App to AppContent to use useLocation
         console.log("[App.js] User is logged out.");
       }
     });
-    return unsubscribe; 
+    return unsubscribe;
   }, []);
 
   if (loadingAuth) {
@@ -82,68 +78,74 @@ function AppContent() { // Renamed App to AppContent to use useLocation
   }
 
   return (
-    <AnimatePresence mode="wait"> {/* mode="wait" ensures one page animates out before the next animates in */}
-      <Routes location={location} key={location.pathname}> {/* Pass location and a unique key */}
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         {/* Public Routes */}
-        <Route 
-          path="/" 
-          // LandingPage is not wrapped with AnimatedPage for instant load, or you can wrap it too
+        <Route
+          path="/"
           element={currentUser ? <Navigate to="/dashboard" replace /> : <LandingPage />}
         />
         <Route path="/signup" element={!currentUser ? <AnimatedPage><SignUp /></AnimatedPage> : <Navigate to="/dashboard" replace />} />
         <Route path="/login" element={!currentUser ? <AnimatedPage><Login /></AnimatedPage> : <Navigate to="/dashboard" replace />} />
         
-        {/* This is a public route for viewing portfolios by ID */}
         <Route
           path="/portfolio/:portfolioId"
-          element={<AnimatedPage><PortfolioPreview /></AnimatedPage>} // PortfolioPreview is now animated
+          element={<AnimatedPage><PortfolioPreview /></AnimatedPage>}
         />
         
         {/* Protected Routes - Wrapped with MainLayout */}
-        <Route 
+        <Route
           element={currentUser ? <MainLayout /> : <Navigate to="/login" replace />}
         >
           <Route path="dashboard" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
           <Route path="profile" element={<AnimatedPage><ProfileForm /></AnimatedPage>} />
           <Route path="choose-template" element={<AnimatedPage><TemplateSelection /></AnimatedPage>} />
           
-          <Route 
-            path="create-styled-portfolio/:templateIdFromUrl" 
-            element={<AnimatedPage><LivePortfolioEditor /></AnimatedPage>} 
+          {/* Creation Routes for different templates */}
+          <Route
+            path="create-blank-portfolio" // No :templateIdFromUrl needed for blank
+            element={<AnimatedPage><LiveBlankPortfolioEditor /></AnimatedPage>}
           />
-          <Route 
-            path="create-blank-portfolio" 
-            element={<AnimatedPage><LiveBlankPortfolioEditor /></AnimatedPage>} 
+          <Route
+            path="create-coder-portfolio/:templateIdFromUrl" // For Minimalist Coder
+            element={<AnimatedPage><LiveMinimalistCoderEditor /></AnimatedPage>}
           />
-          <Route 
-            path="edit-styled/:portfolioId" 
-            element={<AnimatedPage><LivePortfolioEditor /></AnimatedPage>} 
+          <Route
+            path="create-visual-portfolio/:templateIdFromUrl" // NEW: For Visual Storyteller
+            element={<AnimatedPage><LiveVisualStorytellerEditor /></AnimatedPage>}
           />
-          <Route 
-            path="edit-blank/:portfolioId" 
-            element={<AnimatedPage><LiveBlankPortfolioEditor /></AnimatedPage>} 
+
+          {/* Editing Routes for different templates */}
+          <Route
+            path="edit-blank/:portfolioId"
+            element={<AnimatedPage><LiveBlankPortfolioEditor /></AnimatedPage>}
+          />
+          <Route
+            path="edit-coder-portfolio/:portfolioId" // For Minimalist Coder
+            element={<AnimatedPage><LiveMinimalistCoderEditor /></AnimatedPage>}
+          />
+          <Route
+            path="edit-visual-portfolio/:portfolioId" // NEW: For Visual Storyteller
+            element={<AnimatedPage><LiveVisualStorytellerEditor /></AnimatedPage>}
           />
           
-          {/* The PortfolioPreview under /portfolio/:portfolioId is public.
-              If you need an *authenticated* preview, you might have a different route here.
-              For now, assuming the existing PortfolioPreview is sufficient.
-          */}
+          {/* Fallback/Generic styled editor route (if you still need one, otherwise remove) */}
+          {/* <Route 
+            path="edit-styled/:portfolioId" 
+            element={<AnimatedPage><LiveMinimalistCoderEditor /></AnimatedPage>} // Or a generic styled editor
+          /> */}
         </Route>
         
-        <Route path="*" element={<Navigate to="/" replace />} /> 
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>
   );
 }
 
-// Main App component that includes the Router
 function App() {
   return (
     <Router>
-      {/* If you have ThemeProvider, it should wrap AppContent */}
-      {/* <ThemeProvider> */}
-        <AppContent />
-      {/* </ThemeProvider> */}
+      <AppContent />
     </Router>
   );
 }
