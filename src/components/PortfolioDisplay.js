@@ -160,6 +160,7 @@ function PortfolioDisplay({ portfolioData }) {
     return <div className="text-center p-10 text-slate-400 text-lg">Portfolio data is not available or is empty.</div>;
   }
 
+
   const {
     name, profilePicture, linkedinUrl, githubUrl, aboutMe,
     projects = [], skills = [],
@@ -181,7 +182,7 @@ function PortfolioDisplay({ portfolioData }) {
     portfolioBackgroundColor: dataPortfolioBackgroundColor, // Used by Visual and Blank
     skillIconChipBackgroundColor: dataSkillChipBg,
     skillIconChipTextColor: dataSkillChipText,
-    resumeURL,
+    resumeUrl,
   } = portfolioData;
 
   const sectionMarginClass = getMarginBottomClass(sectionSpacing);
@@ -200,7 +201,7 @@ function PortfolioDisplay({ portfolioData }) {
     finalAccentColor = dataAccentColor || CODER_MIN_DEFAULTS.accentColor;
     finalSecondaryAccentColor = dataSecondaryAccentColor || CODER_MIN_DEFAULTS.secondaryAccentColor;
     livePreviewBackgroundStyle = { backgroundColor: dataPortfolioBackgroundColor || CODER_MIN_DEFAULTS.backgroundColor };
-    portfolioContainerClasses += " p-6 md:p-10 lg:p-16 font-['Inter',_sans-serif] max-w-full";
+    portfolioContainerClasses += " p-6 md:p-10 lg:p-16 font-['Inter',_sans-serif] max-w-5xl";
     currentFontFamily = dataFontFamily || CODER_MIN_DEFAULTS.fontFamily;
     currentHeaderLayout = dataHeaderLayout || CODER_MIN_DEFAULTS.headerLayout;
     currentSkillDisplayStyle = dataSkillDisplayStyle || CODER_MIN_DEFAULTS.skillDisplayStyle;
@@ -230,7 +231,7 @@ function PortfolioDisplay({ portfolioData }) {
         finalSecondaryAccentColor = dataSecondaryAccentColor || currentTheme.secondaryAccentColor;
         finalSkillChipBg = dataSkillChipBg || currentTheme.skillIconChipBackgroundColor;
         finalSkillChipText = dataSkillChipText || currentTheme.skillIconChipTextColor;
-        portfolioContainerClasses += " p-0 font-['Playfair_Display',_serif] max-w-full"; // This was likely meant for specific themes, adjusting default Blank padding later
+        portfolioContainerClasses += " p-0 font-['Playfair_Display',_serif] max-w-5xl"; // This was likely meant for specific themes, adjusting default Blank padding later
     } else if (backgroundType === 'customImage' && customBackgroundImageUrl) {
         livePreviewBackgroundStyle = { backgroundImage: `url(${customBackgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' };
         finalHeadingColor = dataHeadingColor || '#FFFFFF'; 
@@ -266,6 +267,7 @@ function PortfolioDisplay({ portfolioData }) {
   }
 
 
+
   const renderHeader = () => {
     const socialLinks = (
         <div className={`flex items-center space-x-4 mt-3 ${currentHeaderLayout === 'image-top-center' || currentHeaderLayout === 'text-only-center' || currentHeaderLayout === 'hero-banner' ? 'justify-center' : 'justify-start'}`}>
@@ -273,22 +275,33 @@ function PortfolioDisplay({ portfolioData }) {
             {githubUrl && <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="Other Link" title="External Link/GitHub"><GitHubIcon fill={finalAccentColor} className="w-5 h-5 md:w-6 md:h-6"/></a>}
         </div>
     );
-
-    const resumeDownloadLink = resumeURL && (
+  const resumeLinkTextColor = (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy')
+                                ? (heroImageUrl ? '#FFFFFF' : finalHeadingColor) // White on hero image, else heading color
+                                : finalBodyTextColor;
+  const resumeIconFillColor = (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy')
+                                ? (heroImageUrl ? '#FFFFFF' : finalAccentColor) // White icon on hero, else accent
+                                : finalAccentColor;
+    const resumeDownloadLink = resumeUrl && (
             <div className={`mt-3 ${currentHeaderLayout === 'image-top-center' || currentHeaderLayout === 'text-only-center' || currentHeaderLayout === 'hero-banner' ? 'text-center' : 'text-left'}`}>
                 <a 
-                    href={resumeURL} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    download // This attribute suggests to the browser to download the linked file
-                    className="inline-flex items-center text-sm font-medium py-1 px-3 rounded-md transition-colors duration-150 hover:opacity-85"
-                    style={{ color: finalBodyTextColor, backgroundColor: finalAccentColor ? `${finalAccentColor}20` : 'rgba(127,127,127,0.2)', border: `1px solid ${finalAccentColor || 'transparent'}` }}
+                  href={resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="inline-flex items-center text-sm font-medium py-2 px-4 rounded-md transition-colors duration-150 hover:opacity-85"
+                  style={{
+                      color: resumeLinkTextColor,
+                      backgroundColor: finalAccentColor ? `${finalAccentColor}30` : 'rgba(127,127,127,0.2)', // Slightly more visible background tint
+                      border: `1px solid ${finalAccentColor || 'transparent'}`
+                  }}
                 >
-                    <DownloadIcon fill={finalAccentColor || finalBodyTextColor} />
-                    Download Resume
+                  <DownloadIcon fill={resumeIconFillColor} className="w-4 h-4 inline-block mr-2" />
+                  Download Resume
                 </a>
             </div>
         );
+
+          
 
     if (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy') {
       return (
