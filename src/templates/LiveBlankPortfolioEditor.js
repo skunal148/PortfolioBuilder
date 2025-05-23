@@ -412,7 +412,7 @@ function LiveBlankPortfolioEditor() {
             setSecondaryAccentColor(selected.secondaryAccentColor);
         }
     };
-let finalResumeUrl = resumeUrl;
+    let finalResumeUrl = resumeUrl;
     const handleSavePortfolio = async () => {
         if (!auth.currentUser) { setError("You must be logged in to save."); return; }
         setLoading(true); setError(null);
