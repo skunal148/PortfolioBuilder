@@ -855,7 +855,7 @@ function LiveModernProfessionalEditor() {
                                     <span>Customize Styles & Layout</span>
                                     <ChevronDownIcon className={`w-5 h-5 text-emerald-400 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
                                 </Disclosure.Button>
-                                <Transition show={open} /* ... */ >
+                                <Transition show={open} enter="transition duration-100 ease-out" enterFrom="transform scale-95 opacity-0 max-h-0" enterTo="transform scale-100 opacity-100 max-h-screen" leave="transition duration-75 ease-out" leaveFrom="transform scale-100 opacity-100 max-h-screen" leaveTo="transform scale-95 opacity-0 max-h-0">
                                     <Disclosure.Panel className="customization-section mt-3 space-y-6 overflow-hidden">
                                         <div>
                                             <label htmlFor="fontFamilyCorp" className={editorLabelClasses}>Font Family</label>
@@ -871,7 +871,22 @@ function LiveModernProfessionalEditor() {
                                             </select>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
-                                            {/* Color pickers for heading, body, accent, secondary accent, background */}
+                                            <div>
+                                                <label htmlFor="headingColorStyled" className={editorLabelClasses}>Heading Color</label>
+                                                <input type="color" id="headingColorStyled" value={headingColor} onChange={(e) => setHeadingColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="bodyTextColorStyled" className={editorLabelClasses}>Body Text Color</label>
+                                                <input type="color" id="bodyTextColorStyled" value={bodyTextColor} onChange={(e) => setBodyTextColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="accentColorStyled" className={editorLabelClasses}>Primary Accent</label>
+                                                <input type="color" id="accentColorStyled" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="secondaryAccentColorStyled" className={editorLabelClasses}>Secondary Accent</label>
+                                                <input type="color" id="secondaryAccentColorStyled" value={secondaryAccentColor} onChange={(e) => setSecondaryAccentColor(e.target.value)} className={`${editorInputClasses} h-12 p-1 w-full`} />
+                                            </div>
                                         </div>
                                         <div>
                                             <label htmlFor="headerLayoutCorp" className={editorLabelClasses}>Header Layout</label>
@@ -885,7 +900,19 @@ function LiveModernProfessionalEditor() {
                                                 {skillDisplayOptions.map(option => ( <option key={option.id} value={option.id}>{option.name}</option> ))}
                                             </select>
                                         </div>
-                                       {/* ... Skill Chip Style Override, Section Spacing ... */}
+                                       <div>
+                                            <label htmlFor="skillChipStyleOverrideStyled" className={editorLabelClasses}>Skill Chip Background</label>
+                                            <select id="skillChipStyleOverrideStyled" value={skillChipStyleOverride} onChange={(e) => setSkillChipStyleOverride(e.target.value)} className={editorInputClasses} >
+                                                <option value="theme">Follow Template Default</option>
+                                                <option value="light">Light Background Chips</option>
+                                                <option value="dark">Dark Background Chips</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="sectionSpacingStyled" className={editorLabelClasses}> Section Spacing: <span className="font-normal text-slate-400 text-xs">({sectionSpacing * 0.25}rem)</span> </label>
+                                            <input type="range" id="sectionSpacingStyled" min="0" max="8" step="1" value={sectionSpacing} onChange={(e) => setSectionSpacing(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" />
+                                            <div className="flex justify-between text-xs text-slate-400 px-1 mt-1"><span>Tight</span><span>Default</span><span>Spacious</span></div>
+                                        </div>
                                     </Disclosure.Panel>
                                 </Transition>
                             </>
