@@ -129,6 +129,11 @@ function LiveVisualStorytellerEditor() {
     const [newSkillName, setNewSkillName] = useState('');
     const [newSkillLevel, setNewSkillLevel] = useState('Beginner');
     const [customSections, setCustomSections] = useState([]);
+    const [resumeFile, setResumeFile] = useState(null);
+    const [resumeUrl, setResumeUrl] = useState('');
+    const [isUploadingResume, setIsUploadingResume] = useState(false);
+    const [resumeUploadProgress, setResumeUploadProgress] = useState(0);
+    const MAX_RESUME_SIZE = 5 * 1024 * 1024; // 5MB for resume, adjust as needed
 
     // Styling & Layout States
     const [fontFamily, setFontFamily] = useState(VISUAL_STORYTELLER_DEFAULTS.fontFamily);
@@ -192,6 +197,7 @@ function LiveVisualStorytellerEditor() {
                     setHeroImageUrl(data.heroImageUrl || ''); 
                     setLinkedinUrl(data.linkedinUrl || '');
                     setGithubUrl(data.githubUrl || '');
+                    setResumeUrl(data.resumeUrl || '');
                     setAboutMe(data.aboutMe || '');
                     setProjects(
                         Array.isArray(data.projects) && data.projects.length > 0
@@ -228,6 +234,24 @@ function LiveVisualStorytellerEditor() {
     useEffect(() => { loadPortfolioData(); }, [loadPortfolioData]);
 
     // --- Content Handler Functions ---
+    const handleResumeFileChange = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (file.size > MAX_RESUME_SIZE) {
+            alert(`Resume file is too large. Max ${MAX_RESUME_SIZE / (1024 * 1024)}MB.`);
+            return;
+        }
+        setResumeFile(file);
+        // Optionally, you can display the file name to the user
+    };
+
+        const handleRemoveResume = () => {
+        setResumeFile(null);
+        setResumeUrl(''); // Also clear the existing URL if they remove the uploaded file
+        // if you have an input field, you might want to reset its value:
+        // const resumeInput = document.getElementById('resume-upload-visual');
+        // if (resumeInput) resumeInput.value = '';
+    };
     const handleAddProject = () => setProjects(prev => [...prev, createNewProject()]);
     const handleProjectChange = (index, field, value) => setProjects(prev => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
     const handleRemoveProject = (projectId) => setProjects(prev => prev.filter(p => p.id !== projectId));
@@ -372,6 +396,7 @@ function LiveVisualStorytellerEditor() {
         let finalHeroImageUrl = heroImageUrl;
         let finalProjects = [...projects];
         let uploadErrorOccurred = false;
+        let finalResumeUrl = resumeUrl; // Initialize with existing URL
 
         try {
             // Upload Profile Picture (if not hero banner or if provided)
@@ -393,7 +418,25 @@ function LiveVisualStorytellerEditor() {
             } else if (!heroImageUrl) {
                 finalHeroImageUrl = '';
             }
-
+            
+            if (resumeFile) {
+                setIsUploadingResume(true);
+                setResumeUploadProgress(0); // Reset progress
+                try {
+                    finalResumeUrl = await handleImageUpload( // Using existing handleImageUpload, ensure it's suitable or create a specific one for files
+                        resumeFile,
+                        `resumes_${THIS_TEMPLATE_ID}/${auth.currentUser.uid}`,
+                        (progress) => setResumeUploadProgress(progress)
+                    );
+                    setResumeFile(null); // Clear the file state after successful upload
+                } catch (resumeError) {
+                    setError(`Failed to upload resume. ${resumeError.message}`);
+                    uploadErrorOccurred = true; // Mark error
+                }
+                setIsUploadingResume(false);
+            } else if (!resumeUrl && !resumeFile) { // If no existing URL and no new file, ensure it's empty
+                finalResumeUrl = '';
+            }
 
             for (let i = 0; i < finalProjects.length; i++) {
                 let project = { ...finalProjects[i] };
@@ -463,6 +506,7 @@ function LiveVisualStorytellerEditor() {
                 portfolioBackgroundColor: portfolioBackgroundColor, // Save chosen background
                 sectionSpacing,
                 skillChipStyleOverride: skillChipStyleOverride,
+                resumeUrl:finalResumeUrl,
                 lastUpdated: serverTimestamp(),
             };
 
@@ -486,6 +530,7 @@ function LiveVisualStorytellerEditor() {
             setLoading(false);
             setIsUploadingProfilePic(false);
             setIsUploadingHeroImage(false);
+            setIsUploadingResume(false); // Reset resume upload state
             setProjects(prev => prev.map(p => ({...p, isUploadingThumbnail: false, thumbnailUploadProgress: 0})));
         }
     };
@@ -555,6 +600,7 @@ function LiveVisualStorytellerEditor() {
     if (loading) saveButtonText = 'Processing...';
     else if (isUploadingProfilePic) saveButtonText = 'Uploading Profile Pic...';
     else if (isUploadingHeroImage) saveButtonText = 'Uploading Hero Image...';
+    else if (isUploadingResume) saveButtonText = `Uploading Resume (${resumeUploadProgress.toFixed(0)}%)...`;
     else if (projects.some(p => p.isUploadingThumbnail)) saveButtonText = 'Uploading Thumbs...';
 
 
@@ -568,6 +614,7 @@ function LiveVisualStorytellerEditor() {
         skillIconChipTextColor: skillChipStyleOverride === 'light' ? '#2D3748' : (skillChipStyleOverride === 'dark' ? '#E5E7EB' : VISUAL_STORYTELLER_DEFAULTS.skillIconChipTextColor),
         portfolioBackgroundColor: portfolioBackgroundColor,
         heroImageUrl: heroImageUrl,
+        resumeUrl: resumeUrl || (resumeFile ? URL.createObjectURL(resumeFile) : ''), // Show local preview if file selected but not yet uploaded for display purposes
     };
     
     const listItemVariants = {
@@ -635,6 +682,42 @@ function LiveVisualStorytellerEditor() {
                             <label htmlFor="githubUrl-visual" className={editorLabelClasses}>Other Portfolio/Social Link (e.g., Dribbble, Behance, GitHub)</label>
                             <input type="url" id="githubUrl-visual" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} className={editorInputClasses} placeholder="https://your-other-link.com"/>
                         </div>
+
+                        <div>
+                            <label htmlFor="resume-upload-visual" className={editorLabelClasses}>Upload Resume (PDF, DOCX - Max 5MB)</label>
+                            <input 
+                                type="file" 
+                                id="resume-upload-visual" 
+                                accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                onChange={handleResumeFileChange} 
+                                className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} 
+                            />
+                            {isUploadingResume && <p className="text-xs text-slate-400 mt-1">Uploading resume ({resumeUploadProgress.toFixed(0)}%)...</p>}
+                            {resumeFile && !isUploadingResume && <p className="text-xs text-slate-300 mt-1">Selected: {resumeFile.name}</p>}
+                            {resumeUrl && !resumeFile && ( // Show current resume if one exists and no new one is staged
+                                <div className="mt-2 flex items-center space-x-2">
+                                    <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 text-sm underline">View Current Resume</a>
+                                    <button 
+                                        type="button" 
+                                        onClick={handleRemoveResume} 
+                                        className="text-rose-500 hover:text-rose-400 p-1 rounded-full hover:bg-slate-700 transition-colors" 
+                                        aria-label="Remove resume"
+                                    >
+                                        <TrashIcon className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+                            {resumeFile && ( // Show remove button if a new file is staged
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveResume}
+                                    className="mt-1 text-xs text-rose-400 hover:underline"
+                                >
+                                    Clear selection
+                                </button>
+                            )}
+                        </div>
+
                         <div>
                             <label htmlFor="aboutMe-visual" className={editorLabelClasses}>About Me / Artist Statement</label>
                             <div className={`quill-editor-override ${editorQuillWrapperClasses}`}>
@@ -983,7 +1066,7 @@ function LiveVisualStorytellerEditor() {
                     </Disclosure>
 
                     <div className="save-button-container mt-8">
-                        <button onClick={handleSavePortfolio} disabled={loading || isUploadingProfilePic || isUploadingHeroImage || projects.some(p => p.isUploadingThumbnail)} className={`${buttonClasses} w-full text-lg py-3 disabled:opacity-70 disabled:cursor-not-allowed`}>
+                        <button onClick={handleSavePortfolio} disabled={loading || isUploadingProfilePic || isUploadingHeroImage || isUploadingResume || projects.some(p => p.isUploadingThumbnail)} className={`${buttonClasses} w-full text-lg py-3 disabled:opacity-70 disabled:cursor-not-allowed`}>
                             {saveButtonText}
                         </button>
                     </div>

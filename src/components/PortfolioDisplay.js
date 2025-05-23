@@ -19,6 +19,12 @@ const GitHubIcon = ({ fill = "#FFFFFF", className = "w-6 h-6" }) => (
   </svg>
 );
 
+const DownloadIcon = ({ fill = "currentColor", className = "w-4 h-4 inline-block mr-1" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill={fill} className={className}>
+    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+  </svg>
+);
+
 // Default definitions from LiveVisualStorytellerEditor
 const VISUAL_STORYTELLER_DEFAULTS = {
     fontFamily: "'Playfair Display', serif",
@@ -175,6 +181,7 @@ function PortfolioDisplay({ portfolioData }) {
     portfolioBackgroundColor: dataPortfolioBackgroundColor, // Used by Visual and Blank
     skillIconChipBackgroundColor: dataSkillChipBg,
     skillIconChipTextColor: dataSkillChipText,
+    resumeURL,
   } = portfolioData;
 
   const sectionMarginClass = getMarginBottomClass(sectionSpacing);
@@ -267,6 +274,22 @@ function PortfolioDisplay({ portfolioData }) {
         </div>
     );
 
+    const resumeDownloadLink = resumeURL && (
+            <div className={`mt-3 ${currentHeaderLayout === 'image-top-center' || currentHeaderLayout === 'text-only-center' || currentHeaderLayout === 'hero-banner' ? 'text-center' : 'text-left'}`}>
+                <a 
+                    href={resumeURL} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    download // This attribute suggests to the browser to download the linked file
+                    className="inline-flex items-center text-sm font-medium py-1 px-3 rounded-md transition-colors duration-150 hover:opacity-85"
+                    style={{ color: finalBodyTextColor, backgroundColor: finalAccentColor ? `${finalAccentColor}20` : 'rgba(127,127,127,0.2)', border: `1px solid ${finalAccentColor || 'transparent'}` }}
+                >
+                    <DownloadIcon fill={finalAccentColor || finalBodyTextColor} />
+                    Download Resume
+                </a>
+            </div>
+        );
+
     if (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy') {
       return (
         <div 
@@ -283,6 +306,7 @@ function PortfolioDisplay({ portfolioData }) {
             {name && <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3" style={{ color: finalHeadingColor || '#FFFFFF' }}>{name}</h1>}
             {currentTagline && <p className="text-xl md:text-2xl lg:text-3xl mb-6" style={{ color: finalBodyTextColor || '#E0E0E0' }}>{currentTagline}</p>}
             {(linkedinUrl || githubUrl) && socialLinks}
+            {resumeDownloadLink}
           </div>
         </div>
       );
@@ -294,6 +318,7 @@ function PortfolioDisplay({ portfolioData }) {
             {currentTagline && templateId === 'style-coder-min' && <p className="text-lg md:text-xl" style={{color: finalBodyTextColor}}>{currentTagline}</p>}
              {currentTagline && templateId !== 'style-coder-min' && templateId !== 'style-visual-heavy' && <p className="text-md md:text-lg" style={{color: finalBodyTextColor}}>{currentTagline}</p>} {/* Tagline for Blank template */}
             {(linkedinUrl || githubUrl) && socialLinks}
+            {resumeDownloadLink}
         </div>
     );
 
