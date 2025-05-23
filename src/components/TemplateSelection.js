@@ -9,20 +9,20 @@ const templates = [
   {
     id: 'blank',
     name: 'Blank Canvas',
-    previewImage: '/images/template-blank-preview.png', // Ensure this image exists or use a placeholder
+    previewImage: '/images/blank.jpg', // Ensure this image exists or use a placeholder
     description: 'Start from scratch with a clean slate. Full control over your content, styles, and layout, including custom sections.'
   },
   {
     id: 'style-coder-min',
     name: 'The Minimalist Coder',
-    previewImage: '/images/template-coder-preview.png', // Replace with your actual preview
+    previewImage: '/images/template-1-preview.jpg', // Replace with your actual preview
     description: 'A clean, technical, and focused template with a fixed layout. Ideal for developers. Custom sections are available.'
   },
   {
     id: 'style-visual-heavy', // NEW TEMPLATE
     name: 'The Visual Storyteller',
     description: 'Image-centric, perfect for designers, photographers, and artists. Focus on high-quality visuals and creative project displays. Custom sections available.',
-    previewImage: '/images/template-visual-preview.png', // Replace with your actual preview for this
+    previewImage: '/images/template-2-preview.jpg', // Replace with your actual preview for this
   },
 ];
 

@@ -2,7 +2,9 @@
 import React from 'react';
 import {
     ReactIcon, JavaScriptIcon, PythonIcon, HtmlIcon, CssIcon,
-    GenericSkillIcon, JavaIcon, NodeIcon
+    GenericSkillIcon, JavaIcon, NodeIcon,
+    Photoshop,
+    Figma
 } from './icons/SkillIcons';
 
 // Social Icons
@@ -59,6 +61,8 @@ const SkillDisplay = ({ skillName, level, fallbackTextColor, displayStyle, accen
     case 'css': case 'css3': iconComponent = <CssIcon />; break;
     case 'java': iconComponent = <JavaIcon />; break;
     case 'node': case 'nodejs': iconComponent = <NodeIcon />; break;
+    case 'photoshop': case 'PS': iconComponent = <Photoshop />; break;
+    case 'Figma': case 'figma': iconComponent = <Figma />; break;
     default: iconComponent = <GenericSkillIcon fill={fallbackTextColor || "#9CA3AF"} size="24" />;
   }
 
@@ -202,7 +206,7 @@ function PortfolioDisplay({ portfolioData }) {
     finalAccentColor = dataAccentColor || VISUAL_STORYTELLER_DEFAULTS.accentColor;
     finalSecondaryAccentColor = dataSecondaryAccentColor || VISUAL_STORYTELLER_DEFAULTS.secondaryAccentColor;
     livePreviewBackgroundStyle = { backgroundColor: dataPortfolioBackgroundColor || VISUAL_STORYTELLER_DEFAULTS.backgroundColor };
-    portfolioContainerClasses += " p-0 font-['Playfair_Display',_serif] max-w-full"; // Visual typically wants more width
+    portfolioContainerClasses += " p-0 font-['Playfair_Display',_serif] max-w-5xl"; // Visual typically wants more width
     currentFontFamily = dataFontFamily || VISUAL_STORYTELLER_DEFAULTS.fontFamily;
     currentHeaderLayout = dataHeaderLayout || VISUAL_STORYTELLER_DEFAULTS.headerLayout;
     currentSkillDisplayStyle = dataSkillDisplayStyle || VISUAL_STORYTELLER_DEFAULTS.skillDisplayStyle;
@@ -441,18 +445,28 @@ function PortfolioDisplay({ portfolioData }) {
                 <h2 className="text-2xl md:text-3xl font-semibold mb-4 md:mb-6 " style={{color: finalHeadingColor}}>
                     {templateId === 'style-visual-heavy' ? 'Selected Works' : 'Projects'}
                 </h2>
-                <div className={`grid grid-cols-1 ${templateId === 'style-visual-heavy' ? 'md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6' : (templateId === 'style-coder-min' ? 'gap-6 md:gap-8' : 'md:grid-cols-2 gap-6 lg:gap-8')}`}>
+                <div className={`grid grid-cols-1 ${templateId === 'style-visual-heavy' ? 'gap-6 md:gap-8': 'md-grid-cols-2 gap-6 lg-gap-8'} : (templateId === 'style-coder-min' || templateId === 'blank' ? 'gap-6 md:gap-8' : 'md:grid-cols-2 gap-6 lg:gap-8')}`}>
                 {projects.map((project, index) => (
                     (project.title || project.description || project.thumbnailUrl || project.liveDemoUrl || project.sourceCodeUrl || project.videoUrl) && (
                     <div 
                         key={project.id || `project-preview-${index}`} 
-                        className={`portfolio-project rounded-lg shadow-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-2xl
+                        className={`portfolio-project rounded-lg shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl
                                 ${templateId === 'style-coder-min' ? 'bg-slate-800 border border-slate-700 hover:border-emerald-500/70' 
                                     : (templateId === 'style-visual-heavy' ? (heroImageUrl || livePreviewBackgroundStyle.backgroundImage || livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor ? 'bg-white dark:bg-slate-800' : 'bg-white border border-gray-200')
-                                        : (templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#F3F4F6' || livePreviewBackgroundStyle.backgroundColor === '#FFFFFF') ? 'bg-white border border-gray-200' : 'bg-slate-700/30 dark:bg-slate-800/50' ) )}`}
+                                        : (templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#F3F4F6' || livePreviewBackgroundStyle.backgroundColor === '#FFFFFF') ? 'bg-white border border-gray-200' : 'bg-slate-800 dark:bg-slate-800/50' ) )}`}
                     >
+                      {project.thumbnailUrl && (templateId === 'style-coder-min') && (
+                        <div className={`relative ${templateId === 'style-coder-min' ? 'aspect-w-4 aspect-h-3 max-h-72 sm:max-h-80 md:max-h-96' : 'h-48 md:h-56'}`}>
+                            <img
+                            src={project.thumbnailUrl}
+                            alt={`${project.title || 'Project'} thumbnail`}
+                            className="w-full h-full object-cover" 
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                        </div>
+                    )}
                     {project.thumbnailUrl && (templateId === 'style-visual-heavy' || templateId !== 'style-coder-min') && (
-                        <div className={`relative ${templateId === 'style-visual-heavy' ? 'aspect-w-4 aspect-h-3' : 'h-48 md:h-56'}`}>
+                        <div className={`relative ${templateId === 'style-visual-heavy' ? 'aspect-w-4 aspect-h-3 max-h-72 sm:max-h-80 md:max-h-96' : 'h-48 md:h-56'}`}>
                             <img
                             src={project.thumbnailUrl}
                             alt={`${project.title || 'Project'} thumbnail`}
@@ -467,8 +481,8 @@ function PortfolioDisplay({ portfolioData }) {
 
                         {project.description && (
                         <div
-                            className={`text-sm md:text-base mb-3 md:mb-4 rich-text-content prose prose-sm max-w-none ${templateId === 'style-coder-min' || (templateId === 'style-visual-heavy' && heroImageUrl) || (templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#374151' || livePreviewBackgroundStyle.backgroundImage)) || (templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor && livePreviewBackgroundStyle.backgroundColor !== '#FFFFFF' && !heroImageUrl) ? 'prose-invert prose-p:text-slate-300 prose-headings:text-slate-100 prose-strong:text-slate-50 prose-a:text-emerald-400 hover:prose-a:text-emerald-300' : 'prose-p:text-slate-700 prose-headings:text-slate-800 prose-strong:text-slate-900 prose-a:text-blue-600 hover:prose-a:text-blue-500 '}`}
-                            style={{color: (templateId !== 'style-coder-min' && !(templateId === 'style-visual-heavy' && heroImageUrl) && !(templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#374151' || livePreviewBackgroundStyle.backgroundImage)) && !(templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor && livePreviewBackgroundStyle.backgroundColor !== '#FFFFFF' && !heroImageUrl) ) ? finalBodyTextColor : undefined, height:'auto', maxHeight:'none', overflow:'visible'}}
+                            className={`text-sm md:text-base mb-3 md:mb-4 rich-text-content prose prose-sm ${templateId === 'style-coder-min' || (templateId === 'style-visual-heavy' && heroImageUrl) || (templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#374151' || livePreviewBackgroundStyle.backgroundImage)) || (templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor && livePreviewBackgroundStyle.backgroundColor !== '#FFFFFF' && !heroImageUrl) ? 'prose-invert text-slate-400 max-w-none prose-p:text-slate-400 prose-headings:text-slate-200 prose-strong:text-slate-100 prose-a:text-emerald-400 hover:prose-a:text-emerald-300' : 'prose-p:text-slate-700 prose-headings:text-slate-800 prose-strong:text-slate-900 prose-a:text-blue-600 hover:prose-a:text-blue-500 '}`}
+                            style={{color: (templateId !== 'style-coder-min' && !(templateId === 'style-visual-heavy' && heroImageUrl) && !(templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#374151' || livePreviewBackgroundStyle.backgroundImage)) && !(templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor && livePreviewBackgroundStyle.backgroundColor !== '#FFFFFF' && !heroImageUrl) ) ? finalBodyTextColor : undefined}}
                             dangerouslySetInnerHTML={{ __html: project.description }}
                         />
                         )}
