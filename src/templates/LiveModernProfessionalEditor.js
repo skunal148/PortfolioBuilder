@@ -543,7 +543,15 @@ function LiveModernProfessionalEditor() {
                             <label htmlFor="profilePicture-corp" className={editorLabelClasses}>Professional Headshot</label>
                             <input type="file" id="profilePicture-corp" accept="image/*" onChange={handleProfilePictureChange} className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} />
                             {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading headshot...</p>}
-                             {/* Profile Picture Preview and Remove Button - Same as other editors */}
+                             <div className="mt-2 flex items-center space-x-2">
+                                {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
+                                {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
+                                {profilePicture && (
+                                    <button type="button" onClick={handleRemoveProfilePicture} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors" aria-label="Remove profile picture" >
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <div>
                             <label htmlFor="linkedinUrl-corp" className={editorLabelClasses}>LinkedIn URL</label>

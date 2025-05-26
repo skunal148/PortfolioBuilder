@@ -54,6 +54,22 @@ const CODER_MIN_DEFAULTS = {
     tagline: "Software Engineer | Full-Stack Developer"
 };
 
+const MODERN_PROFESSIONAL_DEFAULTS = {
+    fontFamily: "'Open Sans', sans-serif",
+    headingColor: '#1e3a8a', // Example: Tailwind's text-blue-800
+    bodyTextColor: '#4b5563',   // Example: Tailwind's text-slate-600
+    accentColor: '#0d9488',   // Example: Tailwind's text-teal-600
+    secondaryAccentColor: '#3b82f6', // Example: Tailwind's text-blue-500 (for CTAs)
+    headerLayout: 'image-left-text-right', // Professional headshot prominent
+    skillDisplayStyle: 'text-only-list',
+    backgroundColor: '#f9fafb', // Example: Tailwind's slate-50 (very light gray)
+    skillIconChipBackgroundColor: '#e5e7eb', // Tailwind's slate-200
+    skillIconChipTextColor: '#374151',     // Tailwind's slate-700
+    tagline: 'Dedicated Professional | Results-Oriented',
+    ctaButtonText: '', // Call To Action button text
+    ctaButtonLink: '', // Call To Action button link
+};
+
 
 const SkillDisplay = ({ skillName, level, fallbackTextColor, displayStyle, accentColor, templateId, skillChipBg, skillChipText }) => {
   const normalizedSkillName = skillName && typeof skillName === 'string' ? skillName.toLowerCase().trim() : '';
@@ -183,6 +199,8 @@ function PortfolioDisplay({ portfolioData }) {
     skillIconChipBackgroundColor: dataSkillChipBg,
     skillIconChipTextColor: dataSkillChipText,
     resumeUrl,
+    ctaButtonText: dataCtaButtonText, // Use data prefix for clarity from props
+    ctaButtonLink: dataCtaButtonLink, // Use data prefix
   } = portfolioData;
 
   const sectionMarginClass = getMarginBottomClass(sectionSpacing);
@@ -193,7 +211,9 @@ function PortfolioDisplay({ portfolioData }) {
       currentFontFamily = dataFontFamily || 'Inter, sans-serif',
       currentHeaderLayout = dataHeaderLayout,
       currentSkillDisplayStyle = dataSkillDisplayStyle,
-      currentTagline = tagline;
+      currentTagline = tagline,
+      currentCtaButtonText = dataCtaButtonText,
+      currentCtaButtonLink = dataCtaButtonLink;
 
   if (templateId === 'style-coder-min') {
     finalHeadingColor = dataHeadingColor || CODER_MIN_DEFAULTS.headingColor;
@@ -221,7 +241,22 @@ function PortfolioDisplay({ portfolioData }) {
     finalSkillChipBg = dataSkillChipBg || VISUAL_STORYTELLER_DEFAULTS.skillIconChipBackgroundColor;
     finalSkillChipText = dataSkillChipText || VISUAL_STORYTELLER_DEFAULTS.skillIconChipTextColor;
     currentTagline = tagline || VISUAL_STORYTELLER_DEFAULTS.tagline;
-  } else if (templateId === 'blank') {
+  } else if (templateId === 'style-corp-sleek') { // **** NEW TEMPLATE LOGIC ****
+    finalHeadingColor = dataHeadingColor || MODERN_PROFESSIONAL_DEFAULTS.headingColor;
+    finalBodyTextColor = dataBodyTextColor || MODERN_PROFESSIONAL_DEFAULTS.bodyTextColor;
+    finalAccentColor = dataAccentColor || MODERN_PROFESSIONAL_DEFAULTS.accentColor;
+    finalSecondaryAccentColor = dataSecondaryAccentColor || MODERN_PROFESSIONAL_DEFAULTS.secondaryAccentColor;
+    livePreviewBackgroundStyle = { backgroundColor: dataPortfolioBackgroundColor || MODERN_PROFESSIONAL_DEFAULTS.backgroundColor };
+    portfolioContainerClasses += " p-6 md:p-10 lg:p-16 max-w-5xl"; // Max width for professional look
+    currentFontFamily = dataFontFamily || MODERN_PROFESSIONAL_DEFAULTS.fontFamily;
+    currentHeaderLayout = dataHeaderLayout || MODERN_PROFESSIONAL_DEFAULTS.headerLayout;
+    currentSkillDisplayStyle = dataSkillDisplayStyle || MODERN_PROFESSIONAL_DEFAULTS.skillDisplayStyle;
+    finalSkillChipBg = dataSkillChipBg || MODERN_PROFESSIONAL_DEFAULTS.skillIconChipBackgroundColor;
+    finalSkillChipText = dataSkillChipText || MODERN_PROFESSIONAL_DEFAULTS.skillIconChipTextColor;
+    currentTagline = tagline || MODERN_PROFESSIONAL_DEFAULTS.tagline;
+    currentCtaButtonText = dataCtaButtonText || MODERN_PROFESSIONAL_DEFAULTS.ctaButtonText;
+    currentCtaButtonLink = dataCtaButtonLink || MODERN_PROFESSIONAL_DEFAULTS.ctaButtonLink;
+    } else if (templateId === 'blank') {
     if (backgroundType === 'theme') {
         const currentTheme = predefinedBackgroundThemes.find(t => t.id === selectedBackgroundTheme) || predefinedBackgroundThemes[0];
         livePreviewBackgroundStyle = currentTheme.style;
@@ -240,6 +275,7 @@ function PortfolioDisplay({ portfolioData }) {
         finalSecondaryAccentColor = dataSecondaryAccentColor || '#A78BFA';
         finalSkillChipBg = dataSkillChipBg || 'rgba(0,0,0,0.3)'; 
         finalSkillChipText = dataSkillChipText || '#FFFFFF';
+        portfolioContainerClasses += " p-0 font-['Playfair_Display',_serif] max-w-5xl";
     } else { // Default solid color for blank or fallback
         const defaultTheme = predefinedBackgroundThemes[0]; // Default dark
         livePreviewBackgroundStyle = { backgroundColor: dataPortfolioBackgroundColor || defaultTheme.style.backgroundColor }; // Allow custom solid color
@@ -301,7 +337,18 @@ function PortfolioDisplay({ portfolioData }) {
             </div>
         );
 
-          
+    const ctaButton = (templateId === 'style-corp-sleek' && currentCtaButtonText && currentCtaButtonLink) && (
+        <a
+            href={currentCtaButtonLink.startsWith('http') ? currentCtaButtonLink : `mailto:${currentCtaButtonLink}`}
+            target={currentCtaButtonLink.startsWith('http') ? '_blank' : '_self'}
+            rel="noopener noreferrer"
+            className="inline-block text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-transform duration-150 hover:scale-105 mt-4"
+            style={{ backgroundColor: finalSecondaryAccentColor || MODERN_PROFESSIONAL_DEFAULTS.secondaryAccentColor }}
+        >
+            {currentCtaButtonText}
+        </a>
+    );
+
 
     if (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy') {
       return (
@@ -328,10 +375,11 @@ function PortfolioDisplay({ portfolioData }) {
     const textContent = (
         <div className={`${currentHeaderLayout === 'image-left-text-right' ? 'text-left' : 'text-center'}`}>
             {name && <h1 className={`text-3xl md:text-4xl font-bold mb-1 ${currentHeaderLayout === 'image-left-text-right' ? '' : 'mx-auto'}`} style={{color: finalHeadingColor}}>{name}</h1>}
-            {currentTagline && templateId === 'style-coder-min' && <p className="text-lg md:text-xl" style={{color: finalBodyTextColor}}>{currentTagline}</p>}
-             {currentTagline && templateId !== 'style-coder-min' && templateId !== 'style-visual-heavy' && <p className="text-md md:text-lg" style={{color: finalBodyTextColor}}>{currentTagline}</p>} {/* Tagline for Blank template */}
+            {currentTagline && ( templateId === 'style-coder-min' || templateId === 'style-corp-sleek') && <p className="text-lg md:text-xl" style={{color: finalBodyTextColor}}>{currentTagline}</p>}
+             {currentTagline && templateId !== 'style-coder-min' && templateId !== 'style-visual-heavy' && templateId !== 'style-corp-sleek' && <p className="text-md md:text-lg" style={{color: finalBodyTextColor}}>{currentTagline}</p>} {/* Tagline for Blank template */}
             {(linkedinUrl || githubUrl) && socialLinks}
             {resumeDownloadLink}
+            {ctaButton}
         </div>
     );
 
@@ -367,17 +415,17 @@ function PortfolioDisplay({ portfolioData }) {
       }}
     >
       
-      <div className={`${templateId === 'style-visual-heavy' && currentHeaderLayout === 'hero-banner' ? '' : (templateId === 'style-visual-heavy' ? '' : 'max-w-5xl mx-auto')}`}> {/* Max-width control */}
+      <div className={`${(templateId === 'style-visual-heavy' && currentHeaderLayout === 'hero-banner') || templateId === 'style-corp-sleek' ? '' : (templateId === 'style-visual-heavy' ? '' : 'max-w-5xl mx-auto')}`}> {/* Max-width control */}
         {/* Header */}
         <div 
           className={`portfolio-header 
             ${currentHeaderLayout !== 'hero-banner' ? `pb-6 md:pb-8 border-b ${sectionMarginClass}` : ''}
-            ${(currentHeaderLayout !== 'hero-banner' && templateId === 'style-coder-min') ? 'border-slate-700' : ''}
+            ${(currentHeaderLayout !== 'hero-banner' && (templateId === 'style-coder-min' || templateId === 'style-corp-sleek') )? 'border-slate-700' : ''}
             ${(currentHeaderLayout !== 'hero-banner' && templateId === 'blank') ? (livePreviewBackgroundStyle.backgroundColor === '#F3F4F6' || livePreviewBackgroundStyle.backgroundColor === '#FFFFFF' ? 'border-gray-300' : 'border-gray-700') : ''}
             ${(currentHeaderLayout !== 'hero-banner' && templateId === 'style-visual-heavy') ? `border-b-2 pb-8 ${sectionMarginClass}` : ''}
             ${(currentHeaderLayout !== 'hero-banner' && templateId === 'style-visual-heavy') ? contentPaddingClass : ''} /* Add padding if not hero */
             `}
-          style={{ borderColor: (currentHeaderLayout !== 'hero-banner' && templateId !== 'style-coder-min' && templateId !== 'blank' && !(templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor && (livePreviewBackgroundStyle.backgroundColor ===VISUAL_STORYTELLER_DEFAULTS.backgroundColor || livePreviewBackgroundStyle.backgroundColor === '#FFFFFF'))) ? finalAccentColor : undefined }}
+          style={{ borderColor: (currentHeaderLayout !== 'hero-banner' && templateId !== 'style-coder-min' && templateId !== 'style-corp-sleek' && templateId !== 'blank' && !(templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor && (livePreviewBackgroundStyle.backgroundColor ===VISUAL_STORYTELLER_DEFAULTS.backgroundColor || livePreviewBackgroundStyle.backgroundColor === '#FFFFFF'))) ? finalAccentColor : undefined }}
         >
           {renderHeader()}
         </div>
@@ -390,7 +438,7 @@ function PortfolioDisplay({ portfolioData }) {
                 </h2>
                 <div
                     className={`rich-text-content prose prose-sm md:prose-base max-w-none ${templateId === 'style-coder-min' || (templateId === 'style-visual-heavy' && heroImageUrl) || (templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#374151' || livePreviewBackgroundStyle.backgroundImage)) || (templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor && livePreviewBackgroundStyle.backgroundColor !== '#FFFFFF' && !heroImageUrl) ? 'prose-invert prose-p:text-slate-300 prose-headings:text-slate-100 prose-strong:text-slate-50 prose-a:text-emerald-400 hover:prose-a:text-emerald-300' : 'prose-p:text-slate-700 prose-headings:text-slate-800 prose-strong:text-slate-900 prose-a:text-blue-600 hover:prose-a:text-blue-500'} prose-p:my-2 prose-headings:my-3`}
-                    style={{color: (templateId !== 'style-coder-min' && !(templateId === 'style-visual-heavy' && heroImageUrl) && !(templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#374151' || livePreviewBackgroundStyle.backgroundImage)) && !(templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor && livePreviewBackgroundStyle.backgroundColor !== '#FFFFFF' && !heroImageUrl) ) ? finalBodyTextColor : undefined }}
+                    style={{color: (templateId !== 'style-coder-min' &&  templateId !== 'style-coder-min' && !(templateId === 'style-visual-heavy' && heroImageUrl) && !(templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#374151' || livePreviewBackgroundStyle.backgroundImage)) && !(templateId === 'style-visual-heavy' && livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor && livePreviewBackgroundStyle.backgroundColor !== '#FFFFFF' && !heroImageUrl) ) ? finalBodyTextColor : undefined }}
                     dangerouslySetInnerHTML={{ __html: aboutMe }}
                 />
                 </div>
@@ -481,9 +529,10 @@ function PortfolioDisplay({ portfolioData }) {
             {projects && projects.some(p => p.title || p.description || p.thumbnailUrl || p.liveDemoUrl || p.sourceCodeUrl || p.videoUrl) && (
                 <div className={`portfolio-projects ${sectionMarginClass}`}>
                 <h2 className="text-2xl md:text-3xl font-semibold mb-4 md:mb-6 " style={{color: finalHeadingColor}}>
-                    {templateId === 'style-visual-heavy' ? 'Selected Works' : 'Projects'}
+                    {templateId === 'style-visual-heavy' ? 'Selected Works' : (templateId === 'style-corp-sleek' ? 'Projects / Case Studies' : 'Projects')} 
                 </h2>
-                <div className={`grid grid-cols-1 ${templateId === 'style-visual-heavy' ? 'gap-6 md:gap-8': 'md-grid-cols-2 gap-6 lg-gap-8'} : (templateId === 'style-coder-min' || templateId === 'blank' ? 'gap-6 md:gap-8' : 'md:grid-cols-2 gap-6 lg:gap-8')}`}>
+                <div className={`grid grid-cols-1 ${templateId === 'style-visual-heavy' ? 'gap-6 md:gap-8': 'md-grid-cols-2 gap-6 lg-gap-8'} : (templateId === 'style-coder-min' || templateId === 'blank' ? 'gap-6 md:gap-8' : 'md:grid-cols-2 gap-6 lg:gap-8' : (templateId === 'style-corp-sleek' ? 'md:grid-cols-2 gap-6 lg:gap-8' // Similar to blank/default grid
+                            : 'md:grid-cols-2 gap-6 lg:gap-8' )}`}>
                 {projects.map((project, index) => (
                     (project.title || project.description || project.thumbnailUrl || project.liveDemoUrl || project.sourceCodeUrl || project.videoUrl) && (
                     <div 
@@ -491,7 +540,8 @@ function PortfolioDisplay({ portfolioData }) {
                         className={`portfolio-project rounded-lg shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl
                                 ${templateId === 'style-coder-min' ? 'bg-slate-800 border border-slate-700 hover:border-emerald-500/70' 
                                     : (templateId === 'style-visual-heavy' ? (heroImageUrl || livePreviewBackgroundStyle.backgroundImage || livePreviewBackgroundStyle.backgroundColor !== VISUAL_STORYTELLER_DEFAULTS.backgroundColor ? 'bg-white dark:bg-slate-800' : 'bg-white border border-gray-200')
-                                        : (templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#F3F4F6' || livePreviewBackgroundStyle.backgroundColor === '#FFFFFF') ? 'bg-white border border-gray-200' : 'bg-slate-800 dark:bg-slate-800/50' ) )}`}
+                                      : (templateId === 'style-corp-sleek' ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
+                                        : (templateId === 'blank' && (livePreviewBackgroundStyle.backgroundColor === '#F3F4F6' || livePreviewBackgroundStyle.backgroundColor === '#FFFFFF') ? 'bg-white border border-gray-200' : 'bg-slate-800 dark:bg-slate-800/50' ) ))}`}
                     >
                       {project.thumbnailUrl && (templateId === 'style-coder-min') && (
                         <div className={`relative ${templateId === 'style-coder-min' ? 'aspect-w-4 aspect-h-3 max-h-72 sm:max-h-80 md:max-h-96' : 'h-48 md:h-56'}`}>

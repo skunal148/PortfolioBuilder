@@ -24,6 +24,12 @@ const templates = [
     description: 'Image-centric, perfect for designers, photographers, and artists. Focus on high-quality visuals and creative project displays. Custom sections available.',
     previewImage: '/images/template-2-preview.jpg', // Replace with your actual preview for this
   },
+  { // New Template Definition
+    id: 'style-corp-sleek',
+    name: 'The Modern Professional',
+    previewImage: '/images/template-corp-preview.png', // Ensure this image exists
+    description: 'Structured and clean, designed for consultants, freelancers, and business professionals. Highlights expertise, services, and credibility with clear calls to action.'
+  },
 ];
 
 function TemplateSelection() {
@@ -55,7 +61,9 @@ function TemplateSelection() {
       navigate(`/create-coder-portfolio/${templateId}`);
     } else if (templateId === 'style-visual-heavy') {
       navigate(`/create-visual-portfolio/${templateId}`);
-    } else {
+    }else if (templateId === 'style-corp-sleek') {
+      navigate(`/create-corp-portfolio/${templateId}`); 
+    }else {
       // Fallback for any other styled templates
       navigate(`/create-styled-portfolio/${templateId}`);
     }
@@ -77,7 +85,9 @@ function TemplateSelection() {
       navigate(`/edit-coder-portfolio/${portfolio.id}`);
     } else if (portfolio.templateId === 'style-visual-heavy') {
       navigate(`/edit-visual-portfolio/${portfolio.id}`);
-    } else {
+    }else if (portfolio.templateId === 'style-corp-sleek') { // New Case for Modern Professional
+      navigate(`/edit-corp-portfolio/${portfolio.id}`); 
+    }else {
       // Fallback for any other styled templates or older ones
       navigate(`/edit-styled/${portfolio.id}`); 
     }

@@ -9,7 +9,7 @@ const templateBackgroundImages = {
     'blank': '/images/template-blank-preview.png', // Replace with your actual preview
     'style-coder-min': '/images/template-coder-preview.png', // Replace with your actual preview
     'style-visual-heavy': '/images/template-visual-preview.png', // Replace with your actual preview
-    // Add other template IDs and their preview image paths if you have more
+    'style-corp-sleek': '/images/template-corp-preview.png', // Added new template
     'default': 'https://placehold.co/600x400/334155/94a3b8?text=Portfolio' // Fallback
 };
 
@@ -84,7 +84,9 @@ function Dashboard() {
       navigate(`/edit-coder-portfolio/${portfolio.id}`);
     } else if (portfolio.templateId === 'style-visual-heavy') {
       navigate(`/edit-visual-portfolio/${portfolio.id}`);
-    } else {
+    } else if (portfolio.templateId === 'style-corp-sleek') { // New Case for Modern Professional
+      navigate(`/edit-corp-portfolio/${portfolio.id}`);
+    }else {
       // Fallback for older styled portfolios or a generic editor if they don't have specific routes
       console.warn(`Editing portfolio with unknown or older templateId: ${portfolio.templateId}. Routing to generic editor.`);
       navigate(`/edit-styled/${portfolio.id}`); 
