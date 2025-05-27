@@ -8,7 +8,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import '../components/quill.css';
 import { Disclosure, Transition } from '@headlessui/react'; // Import Disclosure and Transition
-
+import { motion, AnimatePresence } from 'framer-motion';
 import PortfolioDisplay from '../components/PortfolioDisplay';
 
 // --- Icons ---
@@ -98,7 +98,7 @@ const generateStableId = (prefix) => `${prefix}-${Date.now()}-${Math.random().to
 const createNewProject = () => ({ id: generateStableId('project'), title: '', description: '', thumbnailUrl: '', thumbnailFile: null, isUploadingThumbnail: false, thumbnailUploadProgress: 0, liveDemoUrl: '', sourceCodeUrl: '', videoUrl: '', isCollapsed: false });
 const createNewCustomSection = () => ({ id: generateStableId('customSection'), sectionTitle: '', items: [] });
 const createNewCustomSectionItem = () => ({ id: generateStableId('customItem'), itemTitle: '', itemDetails: '', isCollapsed: false });
-
+const createNewCertification = () => ({ id: generateStableId('certification'), title: '', issuingBody: '', dateIssued: '', credentialId: '', credentialUrl: '', certificateFile: null, certificateUrl: '', isUploadingCertificate: false, certificateUploadProgress: 0, isCollapsed: false });
 
 function LiveBlankPortfolioEditor() {
     const { portfolioId } = useParams();
@@ -118,6 +118,7 @@ function LiveBlankPortfolioEditor() {
     const [newSkillName, setNewSkillName] = useState('');
     const [newSkillLevel, setNewSkillLevel] = useState('Beginner');
     const [customSections, setCustomSections] = useState([]);
+    const [certifications, setCertifications] = useState([createNewCertification()]); // New state for certifications
     const [resumeFile, setResumeFile] = useState(null);
     const [resumeUrl, setResumeUrl] = useState('');
     const [isUploadingResume, setIsUploadingResume] = useState(false);
@@ -199,6 +200,17 @@ function LiveBlankPortfolioEditor() {
                         : []
                     );
 
+                    setCertifications( // Load certifications
+                        Array.isArray(data.certifications) && data.certifications.length > 0
+                        ? data.certifications.map(cert => ({
+                            ...createNewCertification(),
+                            ...cert,
+                            id: cert.id ? String(cert.id) : generateStableId('certification'),
+                            certificateFile: null, isUploadingCertificate: false, certificateUploadProgress: 0
+                          }))
+                        : [createNewCertification()]
+                     );
+
                     setFontFamily(data.fontFamily || fontOptions[0].value);
                     const loadedBgType = data.backgroundType || 'theme';
                     setBackgroundType(loadedBgType);
@@ -210,7 +222,7 @@ function LiveBlankPortfolioEditor() {
                     setBodyTextColor(data.bodyTextColor || themeForColors.bodyTextColor);
                     setAccentColor(data.accentColor || themeForColors.accentColor);
                     setSecondaryAccentColor(data.secondaryAccentColor || themeForColors.secondaryAccentColor || predefinedColorPalettes[0].secondaryAccentColor);
-
+                    
                     setSkillChipStyleOverride(data.skillChipStyleOverride || 'theme');
 
                     if (loadedBgType === 'customImage') {
@@ -233,6 +245,7 @@ function LiveBlankPortfolioEditor() {
             setAccentColor(currentInitialTheme.accentColor);
             setSecondaryAccentColor(currentInitialTheme.secondaryAccentColor || predefinedColorPalettes[0].secondaryAccentColor);
             setSkillChipStyleOverride('theme');
+            setCertifications([createNewCertification()]);
             setResumeUrl(''); // Initialize for new portfolio
             setLoading(false);
             
@@ -267,6 +280,13 @@ function LiveBlankPortfolioEditor() {
     const handleRemoveCustomSectionItem = (sectionIndex, itemId) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.filter(item => item.id !== itemId) } : s));
     const handleToggleCustomSectionItemCollapse = (sectionIndex, itemId) => setCustomSections(prev => prev.map((s, i) => i === sectionIndex ? { ...s, items: s.items.map(item => item.id === itemId ? { ...item, isCollapsed: !item.isCollapsed } : item) } : s));
     
+    const handleAddCertification = () => setCertifications(prev => [...prev, createNewCertification()]);
+    const handleCertificationChange = (index, field, value) => setCertifications(prev => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
+    const handleRemoveCertification = (certId) => setCertifications(prev => prev.filter(c => c.id !== certId));
+    const handleToggleCertificationCollapse = (certId) => setCertifications(prev => prev.map(c => c.id === certId ? { ...c, isCollapsed: !c.isCollapsed } : c));
+
+
+
     const handleResumeFileChange = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -364,6 +384,23 @@ function LiveBlankPortfolioEditor() {
             )
         );
     };
+
+    const handleCertificateFileChange = (index, event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (file.size > MAX_RESUME_SIZE) { // Using MAX_RESUME_SIZE for certificates too, adjust if needed
+            alert(`Certificate file is too large. Max ${MAX_RESUME_SIZE / (1024 * 1024)}MB.`);
+            return;
+        }
+        const updatedCerts = [...certifications];
+        updatedCerts[index].certificateFile = file;
+        updatedCerts[index].certificateUrl = URL.createObjectURL(file); // For local preview
+        setCertifications(updatedCerts);
+    };
+    const handleRemoveCertificateFile = (index) => {
+       setCertifications(prev => prev.map((c, i) => i === index ? { ...c, certificateFile: null, certificateUrl: '', isUploadingCertificate: false, certificateUploadProgress: 0 } : c));
+    };
+
     const handleCustomBackgroundChange = (event) => {
         const file = event.target.files?.[0];
         if (file) {
@@ -412,6 +449,9 @@ function LiveBlankPortfolioEditor() {
             setSecondaryAccentColor(selected.secondaryAccentColor);
         }
     };
+
+
+
     let finalResumeUrl = resumeUrl;
     const handleSavePortfolio = async () => {
         if (!auth.currentUser) { setError("You must be logged in to save."); return; }
@@ -451,6 +491,30 @@ function LiveBlankPortfolioEditor() {
                 setIsUploadingResume(false);
             } else if (!resumeUrl && !resumeFile) { // If no existing URL and no new file, ensure it's empty
                 finalResumeUrl = '';
+        }
+
+            let finalCertifications = [...certifications];
+        for (let i = 0; i < finalCertifications.length; i++) {
+            let cert = { ...finalCertifications[i] };
+            if (cert.certificateFile) {
+                cert.isUploadingCertificate = true;
+                finalCertifications[i] = cert;
+                setCertifications([...finalCertifications]);
+                try {
+                    const newUrl = await handleImageUpload(
+                        cert.certificateFile,
+                        `certificates_${BLANK_TEMPLATE_ID}/${auth.currentUser.uid}/${cert.id || Date.now()}`,
+                        (progress) => {
+                            setCertifications(prevCerts => prevCerts.map((c, idx) => idx === i ? { ...c, certificateUploadProgress: progress } : c));
+                        }
+                    );
+                    cert.certificateUrl = newUrl;
+                    cert.certificateFile = null;
+                } catch (certError) { setError(`Failed to upload certificate for "${cert.title || `Cert ${i + 1}`}". ${certError.message}`); uploadErrorOccurred = true; }
+                cert.isUploadingCertificate = false;
+                finalCertifications[i] = cert;
+                setCertifications([...finalCertifications]);
+            } else if (!cert.certificateUrl) { cert.certificateUrl = '';}
         }
 
         let finalCustomBgImageUrl = customBackgroundImageUrl;
@@ -502,10 +566,10 @@ function LiveBlankPortfolioEditor() {
             return;
         }
         
-        await savePortfolioDataToFirestore(finalCustomBgImageUrl, finalProfilePictureUrl, processedProjects);
+        await savePortfolioDataToFirestore(finalCustomBgImageUrl, finalProfilePictureUrl, processedProjects, finalCertifications);
     };
 
-    const savePortfolioDataToFirestore = async (bgImageUrlForSave, profilePicUrlForSave, projectsForSave) => {
+    const savePortfolioDataToFirestore = async (bgImageUrlForSave, profilePicUrlForSave, projectsForSave, finalCertifications) => {
         const projectsToSave = projectsForSave.map(p => ({
             id: String(p.id), title: p.title, description: p.description,
             thumbnailUrl: p.thumbnailUrl && !p.thumbnailUrl.startsWith('data:') ? p.thumbnailUrl : '',
@@ -522,18 +586,29 @@ function LiveBlankPortfolioEditor() {
             }))
         }));
 
+        const certificationsToSave = finalCertifications.map(cert => ({
+            id: String(cert.id),
+            title: cert.title,
+            issuingBody: cert.issuingBody,
+            dateIssued: cert.dateIssued,
+            credentialId: cert.credentialId || '',
+            credentialUrl: cert.credentialUrl || '',
+            certificateUrl: cert.certificateUrl && !cert.certificateUrl.startsWith('blob:') ? cert.certificateUrl : '',
+            isCollapsed: cert.isCollapsed !== undefined ? cert.isCollapsed : false,
+        }));
+
         const portfolioData = {
             userId: auth.currentUser.uid, templateId: BLANK_TEMPLATE_ID,
             name, profilePicture: profilePicUrlForSave,
-            linkedinUrl, githubUrl, aboutMe,
+            linkedinUrl, githubUrl, aboutMe, resumeUrl:finalResumeUrl,
             projects: projectsToSave,
             fontFamily, headingColor, bodyTextColor, accentColor, secondaryAccentColor,
             headerLayout,
-            resumeUrl: finalResumeUrl,
             skills, skillDisplayStyle, sectionSpacing,
             customSections: customSectionsToSave,
             // projectsVisible, customizeVisible, skillsVisible, customSectionsVisible, // Removed
             skillChipStyleOverride: skillChipStyleOverride,
+            certifications: certificationsToSave,
             lastUpdated: serverTimestamp(),
             backgroundType,
             selectedBackgroundTheme: backgroundType === 'theme' ? selectedBackgroundTheme : null,
@@ -567,6 +642,7 @@ function LiveBlankPortfolioEditor() {
             console.error("[Save Firestore] Error:", err);
         } finally {
             setIsUploadingResume(false);
+            setCertifications(prev => prev.map(c => ({...c, isUploadingCertificate: false, certificateUploadProgress: 0})));
             setLoading(false);
         }
     };
@@ -606,7 +682,13 @@ function LiveBlankPortfolioEditor() {
             const [removed] = reorderedCustomSections.splice(source.index, 1);
             reorderedCustomSections.splice(destination.index, 0, removed);
             setCustomSections(reorderedCustomSections);
-        }
+        } else if (type === 'CERTIFICATIONS') { // Handle reordering certifications
+            const reorderedCerts = Array.from(certifications);
+            const [removed] = reorderedCerts.splice(source.index, 1);
+            reorderedCerts.splice(destination.index, 0, removed);
+            setCertifications(reorderedCerts);
+
+         }
     };
 
     if (loading && !id) return <div className="flex justify-center items-center min-h-screen text-xl text-slate-700 dark:text-slate-300">Initializing New Portfolio...</div>;
@@ -639,6 +721,7 @@ function LiveBlankPortfolioEditor() {
     if (isUploadingBackground) saveButtonText = `Uploading BG (${backgroundUploadProgress.toFixed(0)}%)...`;
     else if (isUploadingProfilePic) saveButtonText = 'Uploading Pic...';
     else if (projects.some(p => p.isUploadingThumbnail)) saveButtonText = 'Uploading Thumbs...';
+    else if (certifications.some(c => c.isUploadingCertificate)) saveButtonText = 'Uploading Certificates...';
     else if (isUploadingResume) saveButtonText = `Uploading Resume (${resumeUploadProgress.toFixed(0)}%)...`;
     else if (loading) saveButtonText = 'Processing...';
     
@@ -661,12 +744,16 @@ function LiveBlankPortfolioEditor() {
         name, profilePicture, linkedinUrl, githubUrl, aboutMe, projects, skills,
         fontFamily, headingColor, bodyTextColor, accentColor, secondaryAccentColor,
         templateId: BLANK_TEMPLATE_ID,
+        resumeUrl: resumeUrl || (resumeFile ? URL.createObjectURL(resumeFile) : ''),
         backgroundType, selectedBackgroundTheme, customBackgroundImageUrl,
         headerLayout, skillDisplayStyle, sectionSpacing,
         customSections,
+        certifications: certifications.map(cert => ({ // Pass certifications to preview
+            ...cert,
+            certificateUrl: cert.certificateUrl || (cert.certificateFile ? URL.createObjectURL(cert.certificateFile) : '')
+        })),
         skillIconChipBackgroundColor: finalSkillChipBgForPreview,
         skillIconChipTextColor: finalSkillChipTextForPreview,
-        resumeUrl: resumeUrl || (resumeFile ? URL.createObjectURL(resumeFile) : ''), // Show local preview if file selected but not yet uploaded for display purposes
     };
 
     return (
@@ -907,6 +994,73 @@ function LiveBlankPortfolioEditor() {
                                             )}
                                         </Droppable>
                                         <button type="button" onClick={handleAddProject} className={`${buttonClasses} w-full py-3 text-base mt-4`}>Add Another Project</button>
+                                    </Disclosure.Panel>
+                                </Transition>
+                            </>
+                        )}
+                    </Disclosure>
+
+                    {/* Certifications Section with Disclosure */}
+                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={true}>
+                        {({ open }) => (
+                            <>
+                                <Disclosure.Button className={editorSectionHeaderClasses}>
+                                    <span>Certifications & Credentials</span>
+                                    <ChevronDownIcon className={`w-5 h-5 text-emerald-400 transform transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+                                </Disclosure.Button>
+                                <Transition show={open} enter="transition duration-100 ease-out" enterFrom="transform scale-95 opacity-0 max-h-0" enterTo="transform scale-100 opacity-100 max-h-screen" leave="transition duration-75 ease-out" leaveFrom="transform scale-100 opacity-100 max-h-screen" leaveTo="transform scale-95 opacity-0 max-h-0">
+                                    <Disclosure.Panel className="certifications-section mt-3 space-y-2 overflow-hidden">
+                                        <Droppable droppableId="certificationsDroppableBlank" type="CERTIFICATIONS">
+                                            {(provided) => (
+                                                <div ref={provided.innerRef} {...provided.droppableProps} className={`space-y-2`}>
+                                                    <AnimatePresence>
+                                                        {certifications.map((cert, index) => (
+                                                            <Draggable key={cert.id} draggableId={String(cert.id)} index={index} isDragDisabled={isMobileView}>
+                                                                {(providedDraggable) => (
+                                                                    <motion.div
+                                                                        ref={providedDraggable.innerRef}
+                                                                        {...providedDraggable.draggableProps}
+                                                                        variants={{ initial: { opacity: 0, y: -10, height: 0 }, animate: { opacity: 1, y: 0, height: 'auto', transition: { duration: 0.3, ease: "easeOut" } }, exit: { opacity: 0, y: -10, height: 0, transition: { duration: 0.2, ease: "easeIn" } } }}
+                                                                        initial="initial" animate="animate" exit="exit" layout
+                                                                        className={`cert-item-editor-wrapper ${editorDraggableItemBg} rounded-md shadow-md`}
+                                                                    >
+                                                                        <div className="flex justify-between items-center p-3 border-b border-slate-600">
+                                                                            <div className="flex items-center flex-grow">
+                                                                                <div {...providedDraggable.dragHandleProps} className={`p-1 mr-2 ${isMobileView ? 'cursor-default opacity-50' : 'cursor-grab active:cursor-grabbing'}`}> <DragHandleIcon /> </div>
+                                                                                <h4 className={`text-md font-semibold ${editorDraggableItemText} flex-grow cursor-pointer`} onClick={() => handleToggleCertificationCollapse(cert.id)}> {cert.title || `Certification ${index + 1}`} </h4>
+                                                                            </div>
+                                                                            <button type="button" onClick={() => handleToggleCertificationCollapse(cert.id)} className="p-1 text-slate-400 hover:text-slate-200 mr-2"> {cert.isCollapsed ? <ChevronDownIcon /> : <ChevronDownIcon className="transform rotate-180"/>} </button>
+                                                                            {certifications.length > 1 && ( <button type="button" onClick={() => handleRemoveCertification(cert.id)} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-600 transition-colors" aria-label="Remove certification"> <TrashIcon className="w-5 h-5" /> </button> )}
+                                                                        </div>
+                                                                        <Transition show={!cert.isCollapsed} enter="transition-all duration-300 ease-out" enterFrom="opacity-0 max-h-0" enterTo="opacity-100 max-h-[1000px]" leave="transition-all duration-200 ease-in" leaveFrom="opacity-100 max-h-[1000px]" leaveTo="opacity-0 max-h-0" >
+                                                                            <div className="p-3 space-y-4 overflow-hidden">
+                                                                                <div><label htmlFor={`cert-title-${cert.id}`} className={editorLabelClasses}>Certification Name/Title</label><input type="text" id={`cert-title-${cert.id}`} value={cert.title} onChange={(e) => handleCertificationChange(index, 'title', e.target.value)} className={editorInputClasses}/></div>
+                                                                                <div><label htmlFor={`cert-issuingBody-${cert.id}`} className={editorLabelClasses}>Issuing Body</label><input type="text" id={`cert-issuingBody-${cert.id}`} value={cert.issuingBody} onChange={(e) => handleCertificationChange(index, 'issuingBody', e.target.value)} className={editorInputClasses}/></div>
+                                                                                <div><label htmlFor={`cert-dateIssued-${cert.id}`} className={editorLabelClasses}>Date Issued</label><input type="text" id={`cert-dateIssued-${cert.id}`} value={cert.dateIssued} onChange={(e) => handleCertificationChange(index, 'dateIssued', e.target.value)} className={editorInputClasses} placeholder="e.g., Oct 2023 or 2023"/></div>
+                                                                                <div><label htmlFor={`cert-credentialId-${cert.id}`} className={editorLabelClasses}>Credential ID (Optional)</label><input type="text" id={`cert-credentialId-${cert.id}`} value={cert.credentialId} onChange={(e) => handleCertificationChange(index, 'credentialId', e.target.value)} className={editorInputClasses}/></div>
+                                                                                <div><label htmlFor={`cert-credentialUrl-${cert.id}`} className={editorLabelClasses}>Verification URL (Optional)</label><input type="url" id={`cert-credentialUrl-${cert.id}`} value={cert.credentialUrl} onChange={(e) => handleCertificationChange(index, 'credentialUrl', e.target.value)} className={editorInputClasses} placeholder="https://example.com/verify/id"/></div>
+                                                                                <div>
+                                                                                    <label htmlFor={`cert-file-${cert.id}`} className={editorLabelClasses}>Upload Certificate (PDF - Max 5MB)</label>
+                                                                                    <input type="file" id={`cert-file-${cert.id}`} accept=".pdf" onChange={(e) => handleCertificateFileChange(index, e)} className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} />
+                                                                                    {certifications[index].isUploadingCertificate && <p className="text-xs text-slate-400 mt-1">Uploading ({certifications[index].certificateUploadProgress?.toFixed(0) || 0}%)...</p>}
+                                                                                    {certifications[index].certificateFile && !certifications[index].isUploadingCertificate && <p className="text-xs text-slate-300 mt-1">Selected: {certifications[index].certificateFile.name}</p>}
+                                                                                    {certifications[index].certificateUrl && !certifications[index].certificateFile && !certifications[index].certificateUrl.startsWith('blob:') && <a href={certifications[index].certificateUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-400 hover:underline mt-1 inline-block">View Current PDF</a>}
+                                                                                    {(certifications[index].certificateFile || (certifications[index].certificateUrl && !certifications[index].certificateUrl.startsWith('blob:'))) && (
+                                                                                        <button type="button" onClick={() => handleRemoveCertificateFile(index)} className="ml-2 text-rose-500 hover:text-rose-400 p-1 rounded-full hover:bg-slate-700 transition-colors text-xs" aria-label="Remove certificate file">Clear PDF</button>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </Transition>
+                                                                    </motion.div>
+                                                                )}
+                                                            </Draggable>
+                                                        ))}
+                                                    </AnimatePresence>
+                                                    {provided.placeholder}
+                                                </div>
+                                            )}
+                                        </Droppable>
+                                        <button type="button" onClick={handleAddCertification} className={`${buttonClasses} w-full py-3 text-base mt-4`}>Add Another Certification</button>
                                     </Disclosure.Panel>
                                 </Transition>
                             </>

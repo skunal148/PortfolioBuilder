@@ -199,6 +199,7 @@ function PortfolioDisplay({ portfolioData }) {
     skillIconChipBackgroundColor: dataSkillChipBg,
     skillIconChipTextColor: dataSkillChipText,
     resumeUrl,
+    certifications = [], 
     ctaButtonText: dataCtaButtonText, // Use data prefix for clarity from props
     ctaButtonLink: dataCtaButtonLink, // Use data prefix
   } = portfolioData;
@@ -311,12 +312,12 @@ function PortfolioDisplay({ portfolioData }) {
             {githubUrl && <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="Other Link" title="External Link/GitHub"><GitHubIcon fill={finalAccentColor} className="w-5 h-5 md:w-6 md:h-6"/></a>}
         </div>
     );
-  const resumeLinkTextColor = (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy')
-                                ? (heroImageUrl ? '#FFFFFF' : finalHeadingColor) // White on hero image, else heading color
-                                : finalBodyTextColor;
-  const resumeIconFillColor = (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy')
-                                ? (heroImageUrl ? '#FFFFFF' : finalAccentColor) // White icon on hero, else accent
-                                : finalAccentColor;
+    const resumeLinkTextColor = (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy')
+                                    ? (heroImageUrl ? '#FFFFFF' : finalHeadingColor) // White on hero image, else heading color
+                                    : finalBodyTextColor;
+    const resumeIconFillColor = (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy')
+                                    ? (heroImageUrl ? '#FFFFFF' : finalAccentColor) // White icon on hero, else accent
+                                    : finalAccentColor;
     const resumeDownloadLink = resumeUrl && (
             <div className={`mt-3 ${currentHeaderLayout === 'image-top-center' || currentHeaderLayout === 'text-only-center' || currentHeaderLayout === 'hero-banner' ? 'text-center' : 'text-left'}`}>
                 <a 
@@ -525,6 +526,42 @@ function PortfolioDisplay({ portfolioData }) {
                     )}
                 </div>
             ))}
+
+            {/* Certifications Section */}
+            {certifications && certifications.length > 0 && certifications.some(c => c.title || c.issuingBody || c.certificateUrl) && (
+                <div className={`portfolio-certifications ${sectionMarginClass}`}>
+                    <h2 className="text-2xl md:text-3xl font-semibold mb-4 md:mb-6" style={{color: finalHeadingColor}}>
+                        Certifications & Credentials
+                    </h2>
+                    <div className="space-y-4 md:space-y-6">
+                        {certifications.map((cert, index) => (
+                            (cert.title || cert.issuingBody || cert.certificateUrl) && ( // Render only if there's something to show
+                                <div key={cert.id || `cert-display-${index}`} 
+                                     className={`p-4 rounded-lg ${templateId === 'style-corp-sleek' ? 'bg-white dark:bg-slate-800 shadow-md border-l-4' : 'border-l-4'}`} 
+                                     style={{
+                                        borderColor: finalAccentColor, 
+                                        backgroundColor: templateId === 'style-corp-sleek' ? undefined : (finalAccentColor ? `${finalAccentColor}1A` : 'rgba(127,127,127,0.1)')
+                                     }}>
+                                    {cert.title && <h3 className="text-lg md:text-xl font-semibold" style={{color: finalHeadingColor}}>{cert.title}</h3>}
+                                    {cert.issuingBody && <p className="text-sm md:text-base mt-0.5" style={{color: finalBodyTextColor}}>Issued by: {cert.issuingBody}</p>}
+                                    {cert.dateIssued && <p className="text-xs mt-0.5" style={{color: templateId === 'style-corp-sleek' ? `${finalBodyTextColor}B3` : finalBodyTextColor }}>Date: {cert.dateIssued}</p>}
+                                    {cert.credentialId && <p className="text-xs" style={{color: templateId === 'style-corp-sleek' ? `${finalBodyTextColor}B3` : finalBodyTextColor}}>ID: {cert.credentialId}</p>}
+                                    {(cert.credentialUrl || cert.certificateUrl) && (
+                                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                                            {cert.credentialUrl && (
+                                                <a href={cert.credentialUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium hover:underline" style={{color: finalAccentColor === MODERN_PROFESSIONAL_DEFAULTS.accentColor && templateId === 'style-corp-sleek' ? finalSecondaryAccentColor : finalAccentColor }}>Verify Credential</a>
+                                            )}
+                                            {cert.certificateUrl && (
+                                                <a href={cert.certificateUrl} target="_blank" rel="noopener noreferrer" download className="text-sm font-medium hover:underline inline-flex items-center" style={{color: finalAccentColor === MODERN_PROFESSIONAL_DEFAULTS.accentColor && templateId === 'style-corp-sleek' ? finalSecondaryAccentColor : finalAccentColor}}><DownloadIcon fill="currentColor" className="w-4 h-4 mr-1.5" />View Certificate</a>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {projects && projects.some(p => p.title || p.description || p.thumbnailUrl || p.liveDemoUrl || p.sourceCodeUrl || p.videoUrl) && (
                 <div className={`portfolio-projects ${sectionMarginClass}`}>
