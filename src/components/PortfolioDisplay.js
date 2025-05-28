@@ -177,7 +177,7 @@ const getEmbedUrl = (url) => {
         return `https://www.youtube.com/embed/${youtubeMatch[1]}?rel=0&showinfo=0&modestbranding=1`; // Corrected YouTube embed URL
     }
     // Vimeo: handles standard, player, and ondemand links
-    let vimeoMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:player\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|ondemand\/\w+\/)?(\d+)(?:$|\/|\?)/);
+    let vimeoMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:player\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|album\/(\d+)\/video\/|video\/|ondemand\/\w+\/)?(\d+)(?:$|\/|\?)/);
     if (vimeoMatch && vimeoMatch[3]) {
         return `https://player.vimeo.com/video/${vimeoMatch[3]}?title=0&byline=0&portrait=0`;
     }
@@ -480,7 +480,7 @@ function PortfolioDisplay({ portfolioData }) {
       }}
     >
       
-      <div className={`${(templateId === 'style-bold-asymm' || templateId === 'style-visual-heavy' && currentHeaderLayout === 'hero-banner') || templateId === 'style-corp-sleek' ? '' : (templateId === 'style-visual-heavy' ? '' : 'max-w-5xl mx-auto')}`}> {/* Max-width control */}
+      <div className={`${(templateId === 'style-bold-asymm' || (templateId === 'style-visual-heavy' && currentHeaderLayout === 'hero-banner')) || templateId === 'style-corp-sleek' ? '' : (templateId === 'style-visual-heavy' ? '' : 'max-w-5xl mx-auto')}`}> {/* Max-width control */}
         {/* Header */}
         <div 
           className={`portfolio-header 

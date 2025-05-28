@@ -60,12 +60,12 @@ const fontOptions = [
     { name: 'System Default', value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' },
 ];
 
-const headerLayoutOptions = [
+/* const headerLayoutOptions = [
     { id: 'hero-banner', name: 'Hero Banner (Image Background)'},
     { id: 'image-top-center', name: 'Image Top, Text Centered' },
     { id: 'image-left-text-right', name: 'Image Left, Text Right' },
     { id: 'text-only-center', name: 'Text Only, Centered' },
-];
+]; */
 
 const skillDisplayOptions = [
     { id: 'icon-only-chip', name: 'Icon Only (Chip)' },
@@ -151,7 +151,7 @@ function LiveVisualStorytellerEditor() {
     
 
     // Technical States
-    const [activeTemplateIdForPreview, setActiveTemplateIdForPreview] = useState(templateIdFromUrl || THIS_TEMPLATE_ID);
+    /* const [activeTemplateIdForPreview, setActiveTemplateIdForPreview] = useState(templateIdFromUrl || THIS_TEMPLATE_ID); */
     const [isUploadingProfilePic, setIsUploadingProfilePic] = useState(false);
     const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -170,7 +170,7 @@ function LiveVisualStorytellerEditor() {
     const loadPortfolioData = useCallback(async () => {
         setLoading(true);
         setError('');
-        setActiveTemplateIdForPreview(THIS_TEMPLATE_ID);
+        //setActiveTemplateIdForPreview(THIS_TEMPLATE_ID);
 
         // Apply Visual Storyteller defaults first
         setFontFamily(VISUAL_STORYTELLER_DEFAULTS.fontFamily);
@@ -652,7 +652,15 @@ function LiveVisualStorytellerEditor() {
                                 <label htmlFor="profilePicture-visual" className={editorLabelClasses}>Profile Picture (for non-hero layouts)</label>
                                 <input type="file" id="profilePicture-visual" accept="image/*" onChange={handleProfilePictureChange} className={`${editorInputClasses} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600`} />
                                 {isUploadingProfilePic && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
-                                {/* Profile Picture Preview and Remove Button */}
+                                <div className="mt-2 flex items-center space-x-2">
+                                {(profilePicture && profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Preview" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
+                                {(profilePicture && !profilePicture.startsWith('data:')) && !isUploadingProfilePic && <img src={profilePicture} alt="Current" className="rounded-full h-16 w-16 sm:h-20 sm:w-20 object-cover"/>}
+                                {profilePicture && (
+                                    <button type="button" onClick={handleRemoveProfilePicture} className="text-rose-500 hover:text-rose-400 p-1.5 rounded-full hover:bg-slate-700 transition-colors" aria-label="Remove profile picture" >
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </div>
                             </div>
                         )}
                         

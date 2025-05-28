@@ -250,7 +250,7 @@ function LiveBlankPortfolioEditor() {
             setLoading(false);
             
         }
-    }, [id]);
+    }, [id, selectedBackgroundTheme]);
 
     useEffect(() => { loadPortfolioData(); }, [loadPortfolioData]);
 
@@ -458,6 +458,7 @@ function LiveBlankPortfolioEditor() {
         setLoading(true); setError(null);
          // Initialize with existing URL
         let finalProfilePictureUrl = profilePicture;
+        let uploadErrorOccurred = false;
         
         if (profilePictureFile) {
             setIsUploadingProfilePic(true);
@@ -533,7 +534,7 @@ function LiveBlankPortfolioEditor() {
         }
 
         const processedProjects = [];
-        let uploadErrorOccurred = false;
+        
         for (let i = 0; i < projects.length; i++) {
             let project = { ...projects[i] };
             if (project.thumbnailFile) {

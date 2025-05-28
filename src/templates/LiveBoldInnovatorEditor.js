@@ -85,7 +85,7 @@ const createNewCertification = () => ({ id: generateStableId('certification'), t
 
 
 function LiveBoldInnovatorEditor() {
-    const { templateIdFromUrl, portfolioId } = useParams();
+    const {portfolioId } = useParams();
     const id = portfolioId;
     const navigate = useNavigate();
     const THIS_TEMPLATE_ID = 'style-bold-asymm';
@@ -120,7 +120,7 @@ function LiveBoldInnovatorEditor() {
     const [portfolioBackgroundColor, setPortfolioBackgroundColor] = useState(BOLD_INNOVATOR_DEFAULTS.backgroundColor);
     
     // Technical States
-    const [activeTemplateIdForPreview, setActiveTemplateIdForPreview] = useState(templateIdFromUrl || THIS_TEMPLATE_ID);
+    //const [activeTemplateIdForPreview, setActiveTemplateIdForPreview] = useState(templateIdFromUrl || THIS_TEMPLATE_ID);
     const [isUploadingProfilePic, setIsUploadingProfilePic] = useState(false);
     const [isUploadingResume, setIsUploadingResume] = useState(false);
     const [resumeUploadProgress, setResumeUploadProgress] = useState(0);
@@ -137,7 +137,7 @@ function LiveBoldInnovatorEditor() {
     }, []);
 
     const loadPortfolioData = useCallback(async () => {
-        setLoading(true); setError(''); setActiveTemplateIdForPreview(THIS_TEMPLATE_ID);
+        /* setLoading(true); setError(''); setActiveTemplateIdForPreview(THIS_TEMPLATE_ID); */
         
         setFontFamily(BOLD_INNOVATOR_DEFAULTS.fontFamily);
         setHeadingColor(BOLD_INNOVATOR_DEFAULTS.headingColor);
