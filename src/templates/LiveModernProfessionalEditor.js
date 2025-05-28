@@ -547,7 +547,7 @@ function LiveModernProfessionalEditor() {
             </div>
         </div>
     );
-
+    
 
     const editorPanelBg = "bg-slate-800"; 
     const editorSectionBg = "bg-slate-850";

@@ -22,6 +22,7 @@ import LiveBlankPortfolioEditor from './templates/LiveBlankPortfolioEditor';
 import LiveMinimalistCoderEditor from './templates/LiveMinimalistCoderEditor';
 import LiveVisualStorytellerEditor from './templates/LiveVisualStorytellerEditor'; // NEW EDITOR
 import LiveModernProfessionalEditor from './templates/LiveModernProfessionalEditor';
+import LiveBoldInnovatorEditor from './templates/LiveBoldInnovatorEditor'; // Import new editor
 
 import PortfolioPreview from './components/PortfolioPreview';
 
@@ -111,6 +112,10 @@ function AppContent() {
             path="create-corp-portfolio/:templateIdFromUrl"
             element={<AnimatedPage><LiveModernProfessionalEditor /></AnimatedPage>}
           />
+          <Route 
+            path="create-bold-asymm-portfolio/:templateIdFromUrl" // Verify this line
+            element={<AnimatedPage><LiveBoldInnovatorEditor /></AnimatedPage>}
+          />
           {/* Editing Routes for different templates */}
           <Route
             path="edit-blank/:portfolioId"
@@ -127,6 +132,10 @@ function AppContent() {
           <Route // New Route for Modern Professional - Edit
             path="edit-corp-portfolio/:portfolioId"
             element={<AnimatedPage><LiveModernProfessionalEditor /></AnimatedPage>}
+          />
+          <Route 
+            path="edit-bold-asymm-portfolio/:portfolioId" // New Edit Route
+            element={<AnimatedPage><LiveBoldInnovatorEditor /></AnimatedPage>}
           />
           
           {/* Fallback for older/generic styled portfolios if any, pointing to a relevant editor.

@@ -70,6 +70,21 @@ const MODERN_PROFESSIONAL_DEFAULTS = {
     ctaButtonLink: '', // Call To Action button link
 };
 
+const BOLD_INNOVATOR_DEFAULTS = { // New Defaults
+    fontFamily: "'Montserrat', sans-serif",
+    headingColor: '#FFFFFF', 
+    bodyTextColor: '#E0E0E0',   
+    accentColor: '#00F0FF',   // Neon Cyan/Aqua
+    secondaryAccentColor: '#FF007A', // Neon Magenta/Pink
+    headerLayout: 'split-screen-graphic-left', 
+    skillDisplayStyle: 'icon-text-chip',
+    backgroundColor: '#1A1A2E', // Very dark blue/purple
+    skillIconChipBackgroundColor: 'rgba(255, 255, 255, 0.1)', 
+    skillIconChipTextColor: '#00F0FF',     
+    tagline: 'Innovating the Future | Bold Thinker',
+    // mainVisualAssetUrl: '', // If you add this to editor
+};
+
 
 const SkillDisplay = ({ skillName, level, fallbackTextColor, displayStyle, accentColor, templateId, skillChipBg, skillChipText }) => {
   const normalizedSkillName = skillName && typeof skillName === 'string' ? skillName.toLowerCase().trim() : '';
@@ -257,6 +272,28 @@ function PortfolioDisplay({ portfolioData }) {
     currentTagline = tagline || MODERN_PROFESSIONAL_DEFAULTS.tagline;
     currentCtaButtonText = dataCtaButtonText || MODERN_PROFESSIONAL_DEFAULTS.ctaButtonText;
     currentCtaButtonLink = dataCtaButtonLink || MODERN_PROFESSIONAL_DEFAULTS.ctaButtonLink;
+    } else if (templateId === 'style-bold-asymm') { // **** NEW BOLD INNOVATOR LOGIC ****
+    finalHeadingColor = portfolioData.headingColor || BOLD_INNOVATOR_DEFAULTS.headingColor;
+    finalBodyTextColor = portfolioData.bodyTextColor || BOLD_INNOVATOR_DEFAULTS.bodyTextColor;
+    finalAccentColor = portfolioData.accentColor || BOLD_INNOVATOR_DEFAULTS.accentColor;
+    finalSecondaryAccentColor = portfolioData.secondaryAccentColor || BOLD_INNOVATOR_DEFAULTS.secondaryAccentColor;
+    
+    // Handle complex backgrounds like gradients if specified in portfolioBackgroundColor
+    if (typeof portfolioData.portfolioBackgroundColor === 'string' && portfolioData.portfolioBackgroundColor.startsWith('linear-gradient')) {
+        livePreviewBackgroundStyle = { background: portfolioData.portfolioBackgroundColor };
+    } else {
+        livePreviewBackgroundStyle = { backgroundColor: portfolioData.portfolioBackgroundColor || BOLD_INNOVATOR_DEFAULTS.backgroundColor };
+    }
+    
+    portfolioContainerClasses += ` font-['Montserrat',_sans-serif] max-w-5xl overflow-x-hidden`; // Allow full width, hide horizontal overflow from potential asymmetry
+    currentFontFamily = portfolioData.fontFamily || BOLD_INNOVATOR_DEFAULTS.fontFamily;
+    currentHeaderLayout = portfolioData.headerLayout || BOLD_INNOVATOR_DEFAULTS.headerLayout;
+    currentSkillDisplayStyle = portfolioData.skillDisplayStyle || BOLD_INNOVATOR_DEFAULTS.skillDisplayStyle;
+    finalSkillChipBg = portfolioData.skillIconChipBackgroundColor || BOLD_INNOVATOR_DEFAULTS.skillIconChipBackgroundColor;
+    finalSkillChipText = portfolioData.skillIconChipTextColor || BOLD_INNOVATOR_DEFAULTS.skillIconChipTextColor;
+    currentTagline = portfolioData.tagline || BOLD_INNOVATOR_DEFAULTS.tagline;
+    // currentMainVisualAssetUrl = portfolioData.mainVisualAssetUrl || BOLD_INNOVATOR_DEFAULTS.mainVisualAssetUrl;
+
     } else if (templateId === 'blank') {
     if (backgroundType === 'theme') {
         const currentTheme = predefinedBackgroundThemes.find(t => t.id === selectedBackgroundTheme) || predefinedBackgroundThemes[0];
@@ -350,6 +387,33 @@ function PortfolioDisplay({ portfolioData }) {
         </a>
     );
 
+    if (templateId === 'style-bold-asymm') {
+        if (currentHeaderLayout === 'split-screen-graphic-left') {
+            return (
+                <div className="min-h-[60vh] md:min-h-[70vh] flex flex-col md:flex-row items-stretch" style={{ backgroundColor: finalSecondaryAccentColor || '#333' /* Contrasting bg */ }}>
+                    <div className="w-full md:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${portfolioData.profilePicture || 'https://placehold.co/800x1000/1A1A2E/00F0FF?text=Main+Visual'})` }}>
+                        {/* This div is for the image itself */}
+                    </div>
+                    <div className="w-full md:w-1/2 flex flex-col justify-center items-start p-8 md:p-12 lg:p-16 text-left" style={{color: finalHeadingColor}}>
+                        {name && <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-3 leading-tight" style={{color: finalHeadingColor}}>{name}</h1>}
+                        {currentTagline && <p className="text-xl sm:text-2xl lg:text-3xl mb-6" style={{color: finalBodyTextColor}}>{currentTagline}</p>}
+                        {socialLinks}
+                        {resumeDownloadLink}
+                        {/* No CTA button here by default for this specific split, but could be added */}
+                    </div>
+                </div>
+            );
+        } else if (currentHeaderLayout === 'typographic-statement-center') {
+            return (
+                <div className="min-h-[50vh] flex flex-col justify-center items-center text-center p-8" style={{ backgroundColor: portfolioData.portfolioBackgroundColor || BOLD_INNOVATOR_DEFAULTS.backgroundColor }}>
+                    {name && <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-4 leading-none" style={{color: finalHeadingColor}}>{name}</h1>}
+                    {currentTagline && <p className="text-2xl sm:text-3xl lg:text-4xl font-light mb-8" style={{color: finalAccentColor}}>{currentTagline}</p>}
+                    {socialLinks}
+                    {resumeDownloadLink}
+                </div>
+            );
+        }
+    }
 
     if (currentHeaderLayout === 'hero-banner' && templateId === 'style-visual-heavy') {
       return (
@@ -404,8 +468,8 @@ function PortfolioDisplay({ portfolioData }) {
   };
 
   const contentPaddingClass = (templateId === 'style-visual-heavy' && currentHeaderLayout === 'hero-banner') ? 
-                            'p-6 md:p-8 lg:p-10' : // Padding for content below hero
-                            (templateId === 'style-visual-heavy' ? 'p-0' : 'p-6 md:p-8 lg:p-12'); // p-0 for visual if no hero, else standard padding
+        'p-6 md:p-8 lg:p-10' : 
+        (templateId === 'style-visual-heavy' ? 'p-0' : 'p-6 md:p-8 lg:p-12'); // p-0 for visual if no hero, else standard padding
 
 
   return (
@@ -416,7 +480,7 @@ function PortfolioDisplay({ portfolioData }) {
       }}
     >
       
-      <div className={`${(templateId === 'style-visual-heavy' && currentHeaderLayout === 'hero-banner') || templateId === 'style-corp-sleek' ? '' : (templateId === 'style-visual-heavy' ? '' : 'max-w-5xl mx-auto')}`}> {/* Max-width control */}
+      <div className={`${(templateId === 'style-bold-asymm' || templateId === 'style-visual-heavy' && currentHeaderLayout === 'hero-banner') || templateId === 'style-corp-sleek' ? '' : (templateId === 'style-visual-heavy' ? '' : 'max-w-5xl mx-auto')}`}> {/* Max-width control */}
         {/* Header */}
         <div 
           className={`portfolio-header 
@@ -431,7 +495,7 @@ function PortfolioDisplay({ portfolioData }) {
           {renderHeader()}
         </div>
 
-        <div className={contentPaddingClass}> {/* Apply padding to content sections */}
+        <div className={contentPaddingClass || (templateId !== 'style-visual-heavy' && templateId !== 'style-coder-min' && 'pt-6 md:pt-8')}> {/* Apply padding to content sections */}
             {aboutMe && (
                 <div className={`portfolio-about ${sectionMarginClass}`}>
                 <h2 className="text-2xl md:text-3xl font-semibold mb-3 md:mb-4" style={{color: finalHeadingColor}}>
@@ -444,7 +508,7 @@ function PortfolioDisplay({ portfolioData }) {
                 />
                 </div>
             )}
-
+            
             {skills && skills.length > 0 && (
                 <div className={`portfolio-skills ${sectionMarginClass}`}>
                 <h2 className="text-2xl md:text-3xl font-semibold mb-4 md:mb-6" style={{color: finalHeadingColor}}>

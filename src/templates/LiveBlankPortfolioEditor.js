@@ -840,7 +840,7 @@ function LiveBlankPortfolioEditor() {
                     </div>
 
                     {/* Skills Section with Disclosure */}
-                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={true}>
+                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={false}>
                         {({ open }) => (
                             <>
                                 <Disclosure.Button className={editorSectionHeaderClasses}>
@@ -903,7 +903,7 @@ function LiveBlankPortfolioEditor() {
                     </Disclosure>
 
                     {/* Projects Section with Disclosure */}
-                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={true}>
+                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={false}>
                          {({ open }) => (
                             <>
                                 <Disclosure.Button className={editorSectionHeaderClasses}>
@@ -1001,7 +1001,7 @@ function LiveBlankPortfolioEditor() {
                     </Disclosure>
 
                     {/* Certifications Section with Disclosure */}
-                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={true}>
+                    <Disclosure as="div" className={`${editorSectionBg} p-4 rounded-lg`} defaultOpen={false}>
                         {({ open }) => (
                             <>
                                 <Disclosure.Button className={editorSectionHeaderClasses}>

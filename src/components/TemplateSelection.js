@@ -30,6 +30,13 @@ const templates = [
     previewImage: '/images/template-corp-preview.png', // Ensure this image exists
     description: 'Structured and clean, designed for consultants, freelancers, and business professionals. Highlights expertise, services, and credibility with clear calls to action.'
   },
+  {
+    id: 'style-bold-asymm',
+    name: 'The Bold Innovator',
+    previewImage: '/images/template-bold-asymm-preview.png', // CREATE THIS IMAGE
+    description: 'Modern, dynamic, and asymmetrical. For those wanting a high-impact, less conventional design with potential for animations and unique visual presentation.'
+  },
+
 ];
 
 function TemplateSelection() {
@@ -55,6 +62,9 @@ function TemplateSelection() {
   }, []);
 
   const handleTemplateSelect = (templateId) => {
+    console.log("Attempting to navigate for templateId:", templateId); 
+
+
     if (templateId === 'blank') {
       navigate('/create-blank-portfolio');
     } else if (templateId === 'style-coder-min') {
@@ -63,7 +73,9 @@ function TemplateSelection() {
       navigate(`/create-visual-portfolio/${templateId}`);
     }else if (templateId === 'style-corp-sleek') {
       navigate(`/create-corp-portfolio/${templateId}`); 
-    }else {
+    } else if (templateId === 'style-bold-asymm') { // New Case
+      navigate(`/create-bold-asymm-portfolio/${templateId}`);
+    } else {
       // Fallback for any other styled templates
       navigate(`/create-styled-portfolio/${templateId}`);
     }
@@ -87,7 +99,9 @@ function TemplateSelection() {
       navigate(`/edit-visual-portfolio/${portfolio.id}`);
     }else if (portfolio.templateId === 'style-corp-sleek') { // New Case for Modern Professional
       navigate(`/edit-corp-portfolio/${portfolio.id}`); 
-    }else {
+    } else if (portfolio.templateId === 'style-bold-asymm') { // New Case
+      navigate(`/edit-bold-asymm-portfolio/${portfolio.id}`);
+    } else {
       // Fallback for any other styled templates or older ones
       navigate(`/edit-styled/${portfolio.id}`); 
     }
