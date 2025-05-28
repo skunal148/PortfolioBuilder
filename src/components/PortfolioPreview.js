@@ -59,12 +59,20 @@ function PortfolioPreview() {
     // Determine which editor to go back to based on templateId
     if (portfolioData.templateId === 'blank') {
       navigate(`/edit-blank/${portfolioId}`);
-    } else {
+    } else if(portfolioData.templateId === 'style-coder-min') {
       // Assuming other templateIds mean it's a styled template
       // The editor route for styled templates might be different, e.g., /edit-styled/:portfolioId
       // Or it might use the templateId in the route: /editor/:templateId/:portfolioId
       // For this example, I'll assume a generic edit route or direct to styled editor:
       navigate(`/edit-styled/${portfolioId}`); // Adjust if your route is different
+    } else if(portfolioData.templateId === 'style-visual-heavy'){
+      navigate(`/edit-visual-portfolio/${portfolioId}`)
+    }
+    else if(portfolioData.templateId === 'style-bold-asymm'){
+      navigate(`/edit-bold-asymm-portfolio/${portfolioId}`)
+    }
+    else if(portfolioData.templateId === 'style-corp-sleek'){
+      navigate(`/edit-corp-portfolio/${portfolioId}`)
     }
   };
 
@@ -100,7 +108,7 @@ function PortfolioPreview() {
   } else if (portfolioData.templateId === 'style-coder-min') {
       displayBackgroundClass = 'bg-[#1f2937]'; // slate-800 for coder template
   } else if (portfolioData.backgroundType === 'theme' && portfolioData.selectedBackgroundTheme) {
-      //const theme = predefinedBackgroundThemes.find(t => t.id === portfolioData.selectedBackgroundTheme);
+      const theme = predefinedBackgroundThemes.find(t => t.id === portfolioData.selectedBackgroundTheme);
       // If theme has a solid color, we might not need to set it here if PortfolioDisplay handles it.
       // If it's a gradient, PortfolioDisplay must handle it.
       // For simplicity, we'll let PortfolioDisplay handle its own background based on its props.
