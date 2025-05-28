@@ -100,7 +100,7 @@ function PortfolioPreview() {
   } else if (portfolioData.templateId === 'style-coder-min') {
       displayBackgroundClass = 'bg-[#1f2937]'; // slate-800 for coder template
   } else if (portfolioData.backgroundType === 'theme' && portfolioData.selectedBackgroundTheme) {
-      const theme = predefinedBackgroundThemes.find(t => t.id === portfolioData.selectedBackgroundTheme);
+      //const theme = predefinedBackgroundThemes.find(t => t.id === portfolioData.selectedBackgroundTheme);
       // If theme has a solid color, we might not need to set it here if PortfolioDisplay handles it.
       // If it's a gradient, PortfolioDisplay must handle it.
       // For simplicity, we'll let PortfolioDisplay handle its own background based on its props.

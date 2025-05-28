@@ -96,10 +96,10 @@ function Dashboard() {
     }
   };
   
-  const handleViewPortfolio = (portfolioId) => {
+/*   const handleViewPortfolio = (portfolioId) => {
     navigate(`/portfolio/${portfolioId}`);
   };
-
+ */
 
   if (loading) {
     return <div className="p-6 text-center text-slate-300 text-xl">Loading your portfolios...</div>;

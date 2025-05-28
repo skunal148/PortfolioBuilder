@@ -42,7 +42,7 @@ const templates = [
 function TemplateSelection() {
   const navigate = useNavigate();
   const [selectedTemplateVisual, setSelectedTemplateVisual] = useState(templates[0]?.id || '');
-  const [userPortfolios, setUserPortfolios] = useState([]);
+  const [ setUserPortfolios] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ function TemplateSelection() {
       setLoading(false);
     };
     fetchUserPortfolios();
-  }, []);
+  }, [setUserPortfolios]);
 
   const handleTemplateSelect = (templateId) => {
     console.log("Attempting to navigate for templateId:", templateId); 
@@ -85,7 +85,7 @@ function TemplateSelection() {
     setSelectedTemplateVisual(templateId);
   };
 
-  const handleEditPortfolio = (portfolio) => {
+/*   const handleEditPortfolio = (portfolio) => {
     if (!portfolio || !portfolio.id) {
       console.error("Invalid portfolio data for editing", portfolio);
       return;
@@ -105,7 +105,7 @@ function TemplateSelection() {
       // Fallback for any other styled templates or older ones
       navigate(`/edit-styled/${portfolio.id}`); 
     }
-  };
+  }; */
 
 
   if (loading && !auth.currentUser) {
