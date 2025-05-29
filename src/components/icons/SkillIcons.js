@@ -49,9 +49,7 @@ export const Photoshop = ({ size = defaultSkillIconSize }) => (
 
 
 export const GenericSkillIcon = ({ fill = "#6B7280", size = "24" }) => ( // Made generic icon slightly smaller by default
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke={fill} width={size} height={size} aria-label="Skill icon">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L1.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L24 5.25l-.813 2.846a4.5 4.5 0 00-3.09 3.09L18.25 12l2.846.813a4.5 4.5 0 003.09 3.09L24 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L18.25 12zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" />
-  </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 12 12"><path fill="currentColor" d="M7 2.5v-2c0-.28-.22-.5-.5-.5H2c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h8c.55 0 1-.45 1-1V4.5c0-.28-.22-.5-.5-.5h-2C7.67 4 7 3.33 7 2.5m1-2V2c0 .55.45 1 1 1h1.5c.45 0 .67-.54.35-.85l-2-2C8.54-.17 8 .06 8 .5"/></svg>
 );
 
 
